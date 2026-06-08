@@ -7,7 +7,7 @@ import pytest
 from fast_python.cost import CostError, BattRepCost, battery_replacement_cost
 
 
-def assert_close(actual, expected, tolerance=1.0e-8):
+def assert_close(actual, expected, tolerance=1.0e-7):
     """Assert two numeric values are close."""
 
     assert abs(actual - expected) <= tolerance

@@ -286,7 +286,14 @@ def read_json_from_archive(archive, member_name, validator=None, restore_markers
     try:
         raw = archive.read(member_name)
     except KeyError as error:
-        raise ReferenceDataError(f"Reference archive is missing {member_name}.") from error
+        alternate_name = alternate_archive_member_name(member_name)
+
+        try:
+            raw = archive.read(alternate_name)
+        except KeyError:
+            raise ReferenceDataError(
+                f"Reference archive is missing {member_name}."
+            ) from error
 
     data = json.loads(raw.decode("utf-8"))
 
@@ -297,6 +304,15 @@ def read_json_from_archive(archive, member_name, validator=None, restore_markers
         return load_json_data(data)
 
     return data
+
+
+def alternate_archive_member_name(member_name):
+    """Return the same archive path with the other common separator."""
+
+    if "/" in member_name:
+        return member_name.replace("/", "\\")
+
+    return member_name.replace("\\", "/")
 
 
 def make_case_key(aircraft, mission):

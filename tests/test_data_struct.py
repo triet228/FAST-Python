@@ -3,8 +3,6 @@
 """Tests for native DataStructPkg ports."""
 
 import math
-from pathlib import Path
-
 from fast_python.aircraft import prepare_aircraft
 from fast_python.data_struct import (
     clear_mission,
@@ -12,8 +10,8 @@ from fast_python.data_struct import (
     pre_spec_processing,
     spec_processing,
 )
-from fast_python.io import read_json_file, validate_aircraft_json
 from fast_python.markers import MatlabRow
+from fast_python.reference import load_bundled_case_inputs
 
 
 def test_pre_spec_processing_preserves_values_and_fills_defaults():
@@ -180,11 +178,5 @@ def make_history_aircraft():
 def load_wrapper_aircraft(case_name):
     """Load one wrapper fixture aircraft JSON file."""
 
-    path = (
-        Path(r"C:\Users\homin\Projects\FAST-Python-Wrapper")
-        / "examples"
-        / case_name
-        / "inputs"
-        / "InputAircraft.json"
-    )
-    return read_json_file(path, validate_aircraft_json)
+    aircraft, _ = load_bundled_case_inputs(case_name)
+    return aircraft
