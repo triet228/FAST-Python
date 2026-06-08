@@ -41,8 +41,9 @@ The current package provides:
   ERJ175LR, ERJ175LR_Elec, ERJ190_E2, ERJ190_FE,
   LM100J_Conventional, LM100J_Hybrid, plus the full engine preset catalog and
   ExampleTF/ExampleTP engine templates.
-- Native case factories that pair those specs and mission profiles for
-  `A320`, `AEA`, `ATR42`, and `CeRAS`.
+- Native case factories that pair those specs and mission profiles for the
+  runnable aircraft/profile matrix exercised by MATLAB FAST examples, including
+  A320, AEA, ATR42, CeRAS, ERJ, Example-family, and LM100J variants.
 - Native Python port of RetrofitPkg's example retrofit options initializer.
 - Native Python ports of core data-structure and regression utilities:
   missing-field defaulting, SpecProcessing-style regression/default filling,
@@ -148,6 +149,10 @@ tests/
   test_engine.py
   test_history.py
   test_io.py
+  test_matlab_aircraft_specs_parity.py
+  test_matlab_mission_profiles_parity.py
+  test_matlab_mission_segs_parity.py
+  test_matlab_output_aircraft_parity.py
   test_mission_segments.py
   test_native_utilities.py
   test_oew.py
@@ -201,8 +206,9 @@ python -m pip install -e .
 python -m pytest -q
 ```
 
-The tests cover the native Python workflow and the saved wrapper fixture
-reference helper for `A320`, `AEA`, `ATR42`, and `CeRAS`.
+The ordinary tests cover the native Python workflow, expanded native case
+factories, and saved wrapper fixture reference helper for A320, AEA, ATR42, and
+CeRAS. MATLAB-backed parity tests are skipped unless explicitly enabled.
 
 To also re-test the MATLAB wrapper oracle itself:
 
@@ -352,18 +358,21 @@ print(plot_data["figures"][0]["name"])
 
 The public `FastPython.run()` / `run()` path executes the ported native Python
 workflow for aircraft and mission inputs covered by the currently ported
-modules. It has been checked against the saved `FAST-Python-Wrapper` outputs
-for:
+modules. `native_case_names()` currently exposes these runnable preset pairings:
 
-- `A320`
-- `AEA`
-- `ATR42`
-- `CeRAS`
+- `A320`, `AEA`, `ATR42`, `CeRAS`
+- `ERJ175LR`, `ERJ175LR_ClimbThenAccel`, `ERJ175LR_Elec`, `ERJ190_E2`, `ERJ190_FE`
+- `Example_Notional00`, `Example_Notional01`, `Example_Notional02`
+- `Example_RegionalJet00`, `Example_RegionalJet01`, `Example_RegionalJet02`
+- `Example_Turboprop00`, `Example_Turboprop01`, `Example_Turboprop02`
+- `Example_ParametricRegional`, `LM100J_Conventional`, `LM100J_Hybrid`
 
-For inputs outside current native coverage, run the same case through
-`FAST-Python-Wrapper` to confirm MATLAB FAST behavior, then port the missing
-Python module or data dependency. The `reference` backend remains available only
-as deterministic saved-fixture replay.
+The live MATLAB `OutputAircraft` parity suite checks these pairings through
+FAST-Python-Wrapper. It currently has strict parity for 20 cases; `ERJ190_FE` is
+an expected xfail because MATLAB FAST itself does not converge
+(`Settings.Converged = 0`). The `reference` backend remains available for
+deterministic replay of the saved A320, AEA, ATR42, and CeRAS fixture outputs.
+Both backends return the same `FastResult` container shape.
 
 ## Porting Notes
 
