@@ -25,6 +25,7 @@ IGNORED_OUTPUT_PATHS = {
     "Aircraft.Settings.OEWIterations",
     "Aircraft.Specs.Aero.L_D.CrsMAC",
     "Aircraft.Specs.Power.P_W.AC",
+    "Aircraft.Specs.Propulsion.PropArch.ParConns",
     "Aircraft.Specs.Propulsion.PropArch.OperDwn",
     "Aircraft.Specs.Propulsion.PropArch.OperUps",
     "Aircraft.Settings.Dir.Size",

@@ -252,3 +252,33 @@ def test_compare_json_value_ignores_prop_arch_split_handles():
 
     assert compared > 0
     assert failures == []
+
+
+def test_compare_json_value_ignores_prop_arch_parallel_connections():
+    """Check Python zero-based ParConns do not obscure OutputAircraft parity."""
+
+    failures, compared = compare_json_value(
+        {
+            "Specs": {
+                "Propulsion": {
+                    "PropArch": {
+                        "ParConns": [[4], [5]],
+                        "TrnType": [1, 1, 0, 0, 2, 2],
+                    }
+                }
+            }
+        },
+        {
+            "Specs": {
+                "Propulsion": {
+                    "PropArch": {
+                        "ParConns": [[5.0], [6.0]],
+                        "TrnType": [1, 1, 0, 0, 2, 2],
+                    }
+                }
+            }
+        },
+    )
+
+    assert compared > 0
+    assert failures == []

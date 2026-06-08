@@ -471,8 +471,8 @@ def test_recompute_splits_updates_parallel_downstream_split():
                     "OperDwn": lambda lam: [
                         [0, 0, 0, 0],
                         [0, 0, 0, 0],
-                        [0, lam, 0, 0],
                         [0, 0, 0, 0],
+                        [0, lam, 0, 0],
                     ],
                 }
             }

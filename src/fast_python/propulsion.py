@@ -1025,14 +1025,15 @@ def recompute_splits(aircraft, seg_beg, seg_end):
     for main_relative in parallel:
         main_component = main_relative + nsrc
         supplement_components = prop_arch["ParConns"][main_relative]
+        supplement_split_rows = np.asarray(supplement_components, dtype=int) + nsrc
         use_split = np.zeros(nsplit, dtype=bool)
 
         for split_index in range(nsplit):
             tmp_split[split_index] += 0.01
             oper_new = eval_split(prop_arch["OperDwn"], tmp_split)
             use_split[split_index] = np.any(
-                oper_dwn[supplement_components, main_component]
-                != oper_new[supplement_components, main_component]
+                oper_dwn[supplement_split_rows, main_component]
+                != oper_new[supplement_split_rows, main_component]
             )
             tmp_split[split_index] -= 0.01
 
