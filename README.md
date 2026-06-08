@@ -271,7 +271,7 @@ Run a local example input directory with the native Python backend:
 ```sh
 python -m fast_python.main \
   --input-dir examples/A320/inputs \
-  --output-dir outputs/A320
+  --output-dir examples/A320/outputs
 ```
 
 The same shape works for custom inputs:
@@ -287,7 +287,7 @@ After installing the console script, the equivalent command is:
 ```sh
 fast-python \
   --input-dir examples/A320/inputs \
-  --output-dir outputs/A320
+  --output-dir examples/A320/outputs
 ```
 
 Or run a native Python preset pair directly when you want factory-generated
@@ -305,13 +305,13 @@ To replay a saved wrapper fixture explicitly:
 python -m fast_python.main \
   --backend reference \
   --input-dir examples/A320/inputs \
-  --output-dir outputs/reference-a320
+  --output-dir examples/A320/outputs
 ```
 
 Generated files:
 
-- `outputs/A320/OutputAircraft.json`
-- `outputs/A320/OutputAircraftStructure.json`
+- `examples/A320/outputs/OutputAircraft.json`
+- `examples/A320/outputs/OutputAircraftStructure.json`
 
 ## Python API
 
