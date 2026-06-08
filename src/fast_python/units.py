@@ -1,6 +1,11 @@
 # src/fast_python/units.py
 
-"""Unit conversions ported from FAST UnitConversionPkg."""
+"""Unit conversions ported from FAST UnitConversionPkg.
+
+All conversion helpers accept scalars or nested Python lists/tuples and return
+the same container shape. Temperature conversion is affine; the other helpers
+are multiplicative tables copied from FAST's MATLAB package.
+"""
 
 
 MASS_FACTORS = {
@@ -45,37 +50,95 @@ TSFC_FACTORS = {
 
 
 def convert_mass(value, oldunit, newunit):
-    """Convert mass values between lbm, kg, and slug."""
+    """Convert mass values between lbm, kg, and slug.
+
+    Inputs:
+        value: Scalar or nested list/tuple of masses.
+        oldunit: "lbm", "kg", or "slug".
+        newunit: "lbm", "kg", or "slug".
+
+    Outputs:
+        Converted value with the same shape as the input.
+    """
 
     return convert_with_factors(value, oldunit, newunit, MASS_FACTORS, "mass")
 
 
 def convert_length(value, oldunit, newunit):
-    """Convert length values between FAST-supported length units."""
+    """Convert length values between FAST-supported length units.
+
+    Inputs:
+        value: Scalar or nested list/tuple of distances.
+        oldunit: One of ft, m, km, mi, or naut mi.
+        newunit: One of ft, m, km, mi, or naut mi.
+
+    Outputs:
+        Converted distance value with the same shape as the input.
+    """
 
     return convert_with_factors(value, oldunit, newunit, LENGTH_FACTORS, "length")
 
 
 def convert_velocity(value, oldunit, newunit):
-    """Convert velocity values between FAST-supported velocity units."""
+    """Convert velocity values between FAST-supported velocity units.
+
+    Inputs:
+        value: Scalar or nested list/tuple of speeds.
+        oldunit: One of ft/s, m/s, km/s, km/h, mph, kts, or ft/min.
+        newunit: One of ft/s, m/s, km/s, km/h, mph, kts, or ft/min.
+
+    Outputs:
+        Converted speed value with the same shape as the input.
+    """
 
     return convert_with_factors(value, oldunit, newunit, VELOCITY_FACTORS, "velocity")
 
 
 def convert_force(value, oldunit, newunit):
-    """Convert force values between lbf and N."""
+    """Convert force values between lbf and N.
+
+    Inputs:
+        value: Scalar or nested list/tuple of forces.
+        oldunit: "lbf" or "N".
+        newunit: "lbf" or "N".
+
+    Outputs:
+        Converted force value with the same shape as the input.
+    """
 
     return convert_with_factors(value, oldunit, newunit, FORCE_FACTORS, "force")
 
 
 def convert_tsfc(value, oldunit, newunit):
-    """Convert thrust-specific fuel consumption between SI and imperial units."""
+    """Convert thrust-specific fuel consumption between SI and imperial units.
+
+    Inputs:
+        value: Scalar or nested list/tuple of TSFC values.
+        oldunit: "SI" or "Imp", following FAST's UnitConversionPkg labels.
+        newunit: "SI" or "Imp".
+
+    Outputs:
+        Converted TSFC value with the same shape as the input.
+    """
 
     return convert_with_factors(value, oldunit, newunit, TSFC_FACTORS, "TSFC")
 
 
 def convert_temperature(value, oldunit, newunit):
-    """Convert temperature values between K, C, R, and F."""
+    """Convert temperature values between K, C, R, and F.
+
+    Inputs:
+        value: Scalar or nested list/tuple of temperatures.
+        oldunit: K, C, R, or F.
+        newunit: K, C, R, or F.
+
+    Outputs:
+        Converted temperature with the same shape as the input.
+
+    Assumptions:
+        Rankine is treated as an absolute scale and Fahrenheit as an offset
+        scale, matching FAST's Kelvin-centered conversion path.
+    """
 
     if oldunit not in ("K", "C", "R", "F") or newunit not in ("K", "C", "R", "F"):
         raise ValueError("Unsupported temperature unit. Use K, C, R, or F.")
@@ -85,7 +148,18 @@ def convert_temperature(value, oldunit, newunit):
 
 
 def convert_with_factors(value, oldunit, newunit, factors, label):
-    """Apply a multiplicative conversion table to scalars or nested lists."""
+    """Apply a multiplicative conversion table to scalars or nested lists.
+
+    Inputs:
+        value: Scalar or nested list/tuple.
+        oldunit: Source unit key.
+        newunit: Destination unit key.
+        factors: Nested conversion-factor dictionary.
+        label: Human-readable quantity name for validation errors.
+
+    Outputs:
+        Converted value with the input shape preserved.
+    """
 
     if oldunit not in factors or newunit not in factors[oldunit]:
         units = ", ".join(sorted(factors))
@@ -96,7 +170,16 @@ def convert_with_factors(value, oldunit, newunit, factors, label):
 
 
 def apply_scalar(value, func):
-    """Apply a scalar conversion recursively to tuples and lists."""
+    """Apply a scalar conversion recursively to tuples and lists.
+
+    Inputs:
+        value: Scalar, list, or tuple.
+        func: Callable that accepts one scalar and returns one scalar.
+
+    Outputs:
+        Converted value. Lists remain lists and tuples remain tuples so FAST
+        data loaded from JSON does not unexpectedly change container type.
+    """
 
     if isinstance(value, list):
         return [apply_scalar(item, func) for item in value]

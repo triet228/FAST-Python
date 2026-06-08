@@ -75,7 +75,20 @@ RunNative = run_native
 
 
 def native_profile_from_mission(mission):
-    """Return a mission profile from a raw profile or wrapper object."""
+    """Return a mission profile from a raw profile or wrapper object.
+
+    Inputs:
+        mission: Either a raw MissionProfilesPkg-style dictionary or a wrapper
+            object containing a Profile dictionary.
+
+    Outputs:
+        A deep copy of the profile dictionary used by process_profile().
+
+    Assumptions:
+        Wrapper JSON often nests the profile under "Profile", while native
+        preset helpers return the profile directly. Accepting both keeps the
+        Python backend usable from either entry point without mutating inputs.
+    """
 
     profile = deepcopy(mission)
 

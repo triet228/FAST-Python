@@ -1,6 +1,12 @@
 # src/fast_python/__init__.py
 
-"""Python entry points for Future Aircraft Sizing Tool workflows."""
+"""Python entry points for Future Aircraft Sizing Tool workflows.
+
+The package exports both Pythonic snake_case helpers and MATLAB-compatible
+aliases for the FAST modules that have been ported. Public functions generally
+accept and return nested FAST dictionaries using SI units and JSON-compatible
+containers.
+"""
 
 from fast_python.analysis import EAPAnalysis, eap_analysis
 from fast_python.cases import (

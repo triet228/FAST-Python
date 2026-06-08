@@ -6,7 +6,18 @@ import math
 
 
 def gravity(altitude):
-    """Return gravitational acceleration at altitude in m/s^2."""
+    """Return gravitational acceleration at altitude in m/s^2.
+
+    Inputs:
+        altitude: Scalar, list, or tuple of geometric altitudes in meters.
+
+    Outputs:
+        Local gravitational acceleration with the same container shape.
+
+    Assumptions:
+        FAST uses a spherical-Earth correction from sea-level standard gravity;
+        this helper preserves that lightweight model for mission energy terms.
+    """
 
     grav_sl = 9.80665
     earth_rad = 6.371009e6
@@ -75,7 +86,16 @@ def standard_atmosphere(altitude):
 
 
 def apply_scalar(value, func):
-    """Apply a scalar function recursively to tuples and lists."""
+    """Apply a scalar function recursively to tuples and lists.
+
+    Inputs:
+        value: Scalar, list, or tuple.
+        func: Callable that accepts one scalar altitude-related value.
+
+    Outputs:
+        Result with list/tuple shape preserved. This keeps vector-style
+        atmosphere calls compatible with FAST wrapper JSON data.
+    """
 
     if isinstance(value, list):
         return [apply_scalar(item, func) for item in value]

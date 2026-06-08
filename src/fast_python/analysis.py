@@ -1,6 +1,13 @@
 # src/fast_python/analysis.py
 
-"""Aircraft analysis loop ported from FAST EAPAnalysis."""
+"""Aircraft analysis loop ported from FAST EAPAnalysis.
+
+The public loop consumes already-processed aircraft dictionaries, flies the
+mission, resizes energy sources, and iterates MTOW/OEW until the FAST
+convergence criteria are satisfied. Inputs and outputs are SI-valued FAST
+dictionaries; helper functions preserve scalar-versus-vector source weights so
+single-source and multi-source aircraft serialize like wrapper output.
+"""
 
 from copy import deepcopy
 

@@ -1,6 +1,11 @@
 # src/fast_python/markers.py
 
-"""Marker objects used to preserve MATLAB-oriented FAST JSON inputs."""
+"""Marker objects used to preserve MATLAB-oriented FAST JSON inputs.
+
+The wrapper needs to distinguish ordinary JSON arrays from MATLAB row vectors
+and trusted MATLAB expression strings. Marker classes keep that information
+available to Python code without evaluating arbitrary MATLAB syntax.
+"""
 
 
 class MatlabExpression:

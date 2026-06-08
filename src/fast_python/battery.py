@@ -45,7 +45,21 @@ def discharging(aircraft, preq, time, soc_beg=None, parallel=1, series=1):
 
 
 def charging(aircraft, preq, time, soc_beg=None, parallel=1, series=1):
-    """Model FAST's Lithium-ion battery charging dynamics."""
+    """Model FAST's Lithium-ion battery charging dynamics.
+
+    Inputs:
+        aircraft: Aircraft dictionary with Specs.Battery cell parameters.
+        preq: Requested pack power in watts. Negative values charge the pack.
+        time: Interval duration in seconds.
+        soc_beg: Initial state of charge in percent. Defaults to 100.
+        parallel: Number of parallel cells in the pack.
+        series: Number of series cells in the pack.
+
+    Outputs:
+        Tuple of pack voltage, current, output power, charge capacity, SOC,
+        and C-rate arrays. Unlike discharging(), SOC omits the initial value to
+        match BatteryPkg.Charging's MATLAB return shape.
+    """
 
     return battery_power_dynamics(
         aircraft,
@@ -275,7 +289,21 @@ def cycling_aging(aircraft, chem_type, cumul_fecs, charging_time, chrg_rate):
 
 
 def estimate_charge_ocv(aircraft, soc_percent, parallel, series):
-    """Estimate open-circuit cell voltage for GroundCharge."""
+    """Estimate open-circuit cell voltage for GroundCharge.
+
+    Inputs:
+        aircraft: Aircraft dictionary with battery voltage curve parameters.
+        soc_percent: Pack state of charge in percent.
+        parallel: Number of parallel cells.
+        series: Number of series cells.
+
+    Outputs:
+        Estimated open-circuit voltage for one cell in volts.
+
+    Assumptions:
+        FAST estimates OCV by evaluating the charging model at zero requested
+        power, then dividing the pack voltage by the number of series cells.
+    """
 
     voltage, _, _, _, _, _ = charging(
         aircraft,
@@ -330,7 +358,26 @@ def battery_power_dynamics(
     drop_initial_soc,
     label,
 ):
-    """Run the shared FAST battery equivalent-circuit model."""
+    """Run the shared FAST battery equivalent-circuit model.
+
+    Inputs:
+        aircraft: Aircraft dictionary with Specs.Battery parameters.
+        preq: Requested pack power in watts for each interval.
+        time: Interval duration in seconds for each interval.
+        soc_beg: Initial SOC in percent, or None for a full battery.
+        parallel: Number of parallel cells.
+        series: Number of series cells.
+        drop_initial_soc: True for Charging's MATLAB output convention.
+        label: Name used in validation errors.
+
+    Outputs:
+        Voltage in V, current in A, pack output power in W, available capacity
+        in Ah, SOC in percent, and C-rate arrays.
+
+    Assumptions:
+        The implementation keeps the MATLAB sign convention: positive preq
+        draws energy from the battery and negative preq charges it.
+    """
 
     preq, time = prepare_power_time(preq, time, label)
     soc_beg = prepare_initial_soc(soc_beg, label)
@@ -398,7 +445,16 @@ def battery_power_dynamics(
 
 
 def prepare_power_time(preq, time, label):
-    """Broadcast scalar power or time inputs the same way FAST does."""
+    """Broadcast scalar power or time inputs the same way FAST does.
+
+    Inputs:
+        preq: Scalar or sequence of requested powers in watts.
+        time: Scalar or sequence of interval durations in seconds.
+        label: Caller name for error messages.
+
+    Outputs:
+        Two one-dimensional arrays of equal length.
+    """
 
     preq = as_vector(preq)
     time = as_vector(time)
@@ -416,7 +472,15 @@ def prepare_power_time(preq, time, label):
 
 
 def prepare_initial_soc(soc_beg, label):
-    """Return scalar initial SOC, defaulting to a full battery."""
+    """Return scalar initial SOC, defaulting to a full battery.
+
+    Inputs:
+        soc_beg: None, empty sequence, or scalar state of charge in percent.
+        label: Caller name for error messages.
+
+    Outputs:
+        Initial SOC as a float-like scalar percentage.
+    """
 
     if soc_beg is None:
         return 100
@@ -433,7 +497,19 @@ def prepare_initial_soc(soc_beg, label):
 
 
 def available_cell_capacity(aircraft):
-    """Return cell capacity after optional degradation adjustment."""
+    """Return cell capacity after optional degradation adjustment.
+
+    Inputs:
+        aircraft: Aircraft dictionary with Specs.Battery.CapCell in Ah and
+            optional Specs.Battery.SOH history.
+
+    Outputs:
+        Effective single-cell capacity in Ah.
+
+    Assumptions:
+        FAST only applies SOH scaling in off-design analysis when degradation
+        is enabled; sizing runs use the nominal cell capacity.
+    """
 
     specs = aircraft["Specs"]["Battery"]
     settings = aircraft.get("Settings", {})
@@ -447,7 +523,21 @@ def available_cell_capacity(aircraft):
 
 
 def solve_battery_current(hot_voltage, cold_voltage, preq_cell, is_discharge):
-    """Solve the cell current root selected by FAST's battery model."""
+    """Solve the cell current root selected by FAST's battery model.
+
+    Inputs:
+        hot_voltage: Linear current coefficient in the cell voltage equation.
+        cold_voltage: Open-circuit voltage term.
+        preq_cell: Requested power per cell in watts.
+        is_discharge: True when positive current should discharge the cell.
+
+    Outputs:
+        Selected cell current in amps.
+
+    Assumptions:
+        When quadratic roots are complex, FAST searches a narrow current band
+        around the complex-root magnitude instead of solving a new objective.
+    """
 
     roots = np.roots([hot_voltage, cold_voltage, -preq_cell])
 

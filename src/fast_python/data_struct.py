@@ -1,6 +1,13 @@
 # src/fast_python/data_struct.py
 
-"""Data-structure helpers ported from FAST DataStructPkg."""
+"""Data-structure helpers ported from FAST DataStructPkg.
+
+The preprocessing functions normalize user aircraft dictionaries into the
+nested FAST structure expected by the sizing, mission, and propulsion modules.
+Most functions return deep-copied aircraft dictionaries; small helper functions
+that update preallocated mission-history arrays document their in-place effects
+locally.
+"""
 
 import math
 from copy import deepcopy

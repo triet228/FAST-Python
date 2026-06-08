@@ -1,6 +1,11 @@
 # src/fast_python/cost.py
 
-"""Cost helpers ported from FAST CostPkg."""
+"""Cost helpers ported from FAST CostPkg.
+
+Battery cost helpers use FAST's chemistry codes and return scalar replacement
+cost quantities. Dollar values are left in the units used by the MATLAB cost
+package so downstream economic models can reproduce wrapper parity.
+"""
 
 import numpy as np
 

@@ -1,6 +1,11 @@
 # src/fast_python/profiles.py
 
-"""Mission profile presets ported from FAST MissionProfilesPkg."""
+"""Mission profile presets ported from FAST MissionProfilesPkg.
+
+Preset helpers return raw mission-profile dictionaries in SI units. They do not
+run process_profile(); segment indexing is intentionally deferred until an
+aircraft's Settings determine the number of control points per segment.
+"""
 
 from copy import deepcopy
 
@@ -10,7 +15,18 @@ from fast_python.units import convert_length, convert_velocity
 
 
 def apply_profile(aircraft, profile):
-    """Return an aircraft copy with the supplied mission profile attached."""
+    """Return an aircraft copy with the supplied mission profile attached.
+
+    Inputs:
+        aircraft: Aircraft dictionary.
+        profile: Mission profile dictionary.
+
+    Outputs:
+        Deep-copied aircraft dictionary with Mission.Profile set to profile.
+
+    Side effects:
+        None on the caller's aircraft object.
+    """
 
     result = deepcopy(aircraft)
     result.setdefault("Mission", {})["Profile"] = profile

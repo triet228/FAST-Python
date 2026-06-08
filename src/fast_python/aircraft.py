@@ -1,6 +1,11 @@
 # src/fast_python/aircraft.py
 
-"""Aircraft input normalization helpers."""
+"""Aircraft input normalization helpers.
+
+The wrapper accepts compact JSON fields that MATLAB expands before running
+FAST. This module performs the same expansion for Python callers so downstream
+modules can work with one PropArch dictionary shape.
+"""
 
 from copy import deepcopy
 
@@ -8,7 +13,23 @@ from fast_python.markers import MatlabRow
 
 
 def prepare_aircraft(aircraft):
-    """Normalize aircraft input the same way the wrapper does before FAST."""
+    """Normalize aircraft input the same way the wrapper does before FAST.
+
+    Inputs:
+        aircraft: FAST aircraft dictionary, or any other value passed through
+            by callers that are still validating their input type.
+
+    Outputs:
+        A deep-copied aircraft dictionary when normalization is possible.
+        Non-dictionaries and aircraft without Specs.Propulsion are returned
+        unchanged to preserve the wrapper's forgiving pre-validation behavior.
+
+    Side effects:
+        None on the caller's object. For custom "O" architectures, the JSON
+        PropArchGraph is promoted into Specs.Propulsion.PropArch and MATLAB row
+        markers are restored for SrcType and TrnType so architecture matrices
+        keep their intended row-vector meaning.
+    """
 
     if not isinstance(aircraft, dict):
         return aircraft

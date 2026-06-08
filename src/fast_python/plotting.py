@@ -1,6 +1,12 @@
 # src/fast_python/plotting.py
 
-"""PlotPkg data-formatting helpers."""
+"""PlotPkg data-formatting helpers.
+
+FAST's MATLAB plotting functions mix data extraction, unit conversion, and
+figure rendering. The Python port deliberately returns structured plot-ready
+data instead of drawing figures so tests and CLI users can inspect the same
+quantities without requiring a graphical backend.
+"""
 
 import numpy as np
 

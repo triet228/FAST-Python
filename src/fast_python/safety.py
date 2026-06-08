@@ -1,6 +1,12 @@
 # src/fast_python/safety.py
 
-"""Fault-tree analysis helpers ported from FAST SafetyPkg."""
+"""Fault-tree analysis helpers ported from FAST SafetyPkg.
+
+Safety helpers operate on integer failure-mode matrices where each row is one
+cut set and zero is padding. Functions return simplified matrices or scalar
+probabilities while preserving the absorption/idempotent reductions used by
+FAST's MATLAB fault-tree analysis.
+"""
 
 from itertools import combinations, product
 

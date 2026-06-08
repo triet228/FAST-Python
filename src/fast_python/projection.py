@@ -1,6 +1,11 @@
 # src/fast_python/projection.py
 
-"""Key performance parameter projections ported from ProjectionPkg."""
+"""Key performance parameter projections ported from ProjectionPkg.
+
+Projection functions evaluate FAST's empirical S-curves for future technology
+assumptions. Years are numeric calendar years, battery specific energy is
+returned in Wh/kg, and electric-motor specific power is returned in kW/kg.
+"""
 
 import math
 

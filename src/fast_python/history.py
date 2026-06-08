@@ -1,6 +1,11 @@
 # src/fast_python/history.py
 
-"""Mission history table helpers ported from FAST MissionHistTable."""
+"""Mission history table helpers ported from FAST MissionHistTable.
+
+The table builder flattens Mission.History.SI into rows with MATLAB-style
+column labels. It is a read-only reporting layer: values are scaled for display
+units, while the aircraft dictionary and SI history arrays remain unchanged.
+"""
 
 import numpy as np
 

@@ -1,6 +1,11 @@
 # src/fast_python/retrofit.py
 
-"""RetrofitPkg helpers ported from FAST."""
+"""RetrofitPkg helpers ported from FAST.
+
+The current retrofit module exposes the default option structure used by FAST's
+RetrofitPkg. Values are plain Python scalars and nested dictionaries so future
+retrofit drivers can consume them without needing MATLAB structs.
+"""
 
 
 def example_options():

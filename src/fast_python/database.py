@@ -51,7 +51,18 @@ def load_ideas_database(fast_path=None):
 
 @lru_cache(maxsize=4)
 def load_ideas_database_file(database_path):
-    """Load and cache a specific IDEAS_DB.mat file."""
+    """Load and cache a specific IDEAS_DB.mat file.
+
+    Inputs:
+        database_path: Path to +DatabasePkg/IDEAS_DB.mat.
+
+    Outputs:
+        Sanitized dictionary containing each expected FAST database table.
+
+    Side effects:
+        Uses an LRU cache so repeated SpecProcessing runs do not re-read the
+        MAT file from disk.
+    """
 
     database_path = Path(database_path)
 
@@ -71,7 +82,18 @@ def load_ideas_database_file(database_path):
 
 
 def resolve_database_path(fast_path=None):
-    """Return the local path to +DatabasePkg/IDEAS_DB.mat."""
+    """Return the local path to +DatabasePkg/IDEAS_DB.mat.
+
+    Inputs:
+        fast_path: Optional MATLAB FAST checkout path.
+
+    Outputs:
+        Path to IDEAS_DB.mat.
+
+    Assumptions:
+        The user's local FAST checkout may be provided explicitly, through
+        FAST_MATLAB_PATH/FAST_PATH, or by the common ~/Projects/FAST location.
+    """
 
     if fast_path is not None:
         return Path(fast_path) / "+DatabasePkg" / "IDEAS_DB.mat"
@@ -100,7 +122,16 @@ def resolve_database_path(fast_path=None):
 
 
 def sanitize_mat_value(value):
-    """Convert SciPy MAT values into plain Python containers where practical."""
+    """Convert SciPy MAT values into plain Python containers where practical.
+
+    Inputs:
+        value: SciPy-loaded MAT subtree.
+
+    Outputs:
+        Dictionaries, lists, and Python scalars where possible. Numeric arrays
+        are converted to lists so database traversal matches JSON-like FAST
+        dictionaries.
+    """
 
     if isinstance(value, dict):
         return {
@@ -130,7 +161,19 @@ def sanitize_mat_value(value):
 
 
 def tree_branch(trunk, trunk_name):
-    """Return nested-dict branches and scalar leaves for one tree level."""
+    """Return nested-dict branches and scalar leaves for one tree level.
+
+    Inputs:
+        trunk: Current nested database dictionary.
+        trunk_name: Prefix representing the current traversal path.
+
+    Outputs:
+        Tuple of child branches and scalar leaf name/value pairs.
+
+    Assumptions:
+        Leaf names use FAST's underscore-joined path convention from
+        StructTreeSearch.
+    """
 
     branches = []
     leaves = []
@@ -210,7 +253,20 @@ def randomize_db(database, percent, rng=None):
 
 
 def calc_fan_vals(plane, unitsflag):
-    """Assign CalcFanVals unit metadata for turbofan database aircraft."""
+    """Assign CalcFanVals unit metadata for turbofan database aircraft.
+
+    Inputs:
+        plane: Turbofan database aircraft dictionary.
+        unitsflag: "Units" to attach unit labels or "Vals" to compute derived
+            numerical fields.
+
+    Outputs:
+        Deep-copied aircraft dictionary with unit metadata or derived values.
+
+    Assumptions:
+        The function mirrors DatabasePkg.CalcFanVals so regression preprocessing
+        can operate on the same field names as MATLAB FAST.
+    """
 
     result = deepcopy(plane)
 

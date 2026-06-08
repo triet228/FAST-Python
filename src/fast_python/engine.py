@@ -1,6 +1,12 @@
 # src/fast_python/engine.py
 
-"""Engine model helpers ported from FAST EngineModelPkg."""
+"""Engine model helpers ported from FAST EngineModelPkg.
+
+Engine helpers use SI units unless a function name or FAST field explicitly
+states otherwise: pressures are Pa, temperatures are K, mass flow is kg/s,
+thrust is N, and shaft power is W. Many formulas intentionally keep MATLAB's
+iteration limits and empirical constants so oracle fixtures remain comparable.
+"""
 
 from copy import deepcopy
 

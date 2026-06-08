@@ -100,7 +100,21 @@ def power_flow(power, arch, split, eta, direct, tol=1.0e-6):
 
 
 def power_supplement_check(preq, arch, split, eta, trn_type, eta_fan):
-    """Return supplemental power for series and parallel transmitter links."""
+    """Return supplemental power for series and parallel transmitter links.
+
+    Inputs:
+        preq: Required component power matrix in W, rows by mission points.
+        arch: Propulsion architecture adjacency matrix.
+        split: Operational split matrix for the active propagation direction.
+        eta: Efficiency matrix paired with split.
+        trn_type: Transmitter type vector, where gas turbines are 1 and thrust
+            sinks are 2 in FAST's convention.
+        eta_fan: Fan or propeller efficiency used for parallel assistance.
+
+    Outputs:
+        Supplemental power matrix in W with the same row count and transmitter
+        column count as preq.
+    """
 
     preq = as_2d(preq)
     arch = as_array(arch)
@@ -140,7 +154,20 @@ def power_supplement_check(preq, arch, split, eta, trn_type, eta_fan):
 
 
 def prop_arch_connections(aircraft):
-    """Identify parallel engine/electric-motor connections in an aircraft dict."""
+    """Identify parallel engine/electric-motor connections in an aircraft dict.
+
+    Inputs:
+        aircraft: Aircraft dictionary with Specs.Propulsion.PropArch matrices.
+
+    Outputs:
+        A deep-copied aircraft dictionary with PropArch.ParConns populated as
+        lists of electric transmitter indices assisting each gas turbine.
+
+    Assumptions:
+        Component indices follow FAST's concatenated source/transmitter/sink
+        ordering. The stored helper indices remain MATLAB-style component
+        positions because downstream FAST port code expects that convention.
+    """
 
     aircraft = deepcopy(aircraft)
     prop_arch = aircraft["Specs"]["Propulsion"]["PropArch"]
@@ -631,7 +658,19 @@ def partial_turboelectric_architecture(num_eng, eta_em, eta_eg, eta_ts):
 
 
 def make_split_callable(split):
-    """Return a callable wrapper while preserving MATLAB nargin behavior."""
+    """Return a callable wrapper while preserving MATLAB nargin behavior.
+
+    Inputs:
+        split: Either a constant split matrix or a one-argument split function.
+
+    Outputs:
+        Callable returning nested Python lists so JSON-facing structures remain
+        serializable after architecture construction.
+
+    Assumptions:
+        Built-in architectures currently need at most one operational split
+        argument. Custom callables are counted elsewhere by callable_arg_count().
+    """
 
     if callable(split):
         return lambda lam: split(lam).tolist()
@@ -652,7 +691,19 @@ def get_thrust_sink_efficiency(specs, aircraft_class):
 
 
 def validate_custom_prop_arch(prop_arch):
-    """Validate required fields for a custom propulsion architecture."""
+    """Validate required fields for a custom propulsion architecture.
+
+    Inputs:
+        prop_arch: Custom "O" architecture dictionary.
+
+    Outputs:
+        None. Raises PropulsionError for missing fields or inconsistent matrix
+        dimensions.
+
+    Assumptions:
+        Sources are nodes with no incoming edges and sinks are nodes with no
+        outgoing edges, matching FAST's architecture graph interpretation.
+    """
 
     required_fields = ("Arch", "OperUps", "OperDwn", "EtaUps", "EtaDwn", "SrcType", "TrnType")
 
@@ -686,7 +737,16 @@ def validate_custom_prop_arch(prop_arch):
 
 
 def set_split_arg_counts(aircraft):
-    """Store split callable argument counts in aircraft settings."""
+    """Store split callable argument counts in aircraft settings.
+
+    Inputs:
+        aircraft: Aircraft dictionary with PropArch.OperUps and OperDwn.
+
+    Outputs:
+        None. Settings.nargOperUps and Settings.nargOperDwn are updated in
+        place because initialization routines read those counts immediately
+        after architecture creation.
+    """
 
     prop_arch = aircraft["Specs"]["Propulsion"]["PropArch"]
     settings = aircraft.setdefault("Settings", {})
@@ -695,7 +755,20 @@ def set_split_arg_counts(aircraft):
 
 
 def engine_lapse(sls, aircraft_class, rho):
-    """Estimate lapsed thrust or power from sea-level-static output."""
+    """Estimate lapsed thrust or power from sea-level-static output.
+
+    Inputs:
+        sls: Sea-level-static thrust or power value.
+        aircraft_class: FAST TLAR class string.
+        rho: Air density in kg/m^3 at one or more mission points.
+
+    Outputs:
+        Lapsed thrust/power with scalar/list shape restored.
+
+    Assumptions:
+        Turbofan thrust scales with density ratio; turboprop and piston power
+        retain the MATLAB EngineLapse exponent of zero in this FAST model.
+    """
 
     _, _, rho_sl = standard_atmosphere(0)
     rho_ratio = as_array(rho) / rho_sl
@@ -1182,7 +1255,32 @@ def update_battery_energy(
     mass,
     seg_beg,
 ):
-    """Update battery energy and optional detailed cell histories."""
+    """Update battery energy and optional detailed cell histories.
+
+    Inputs:
+        aircraft: Aircraft dictionary whose history flags may be updated.
+        pout: Component output-power history in W, mutated in place.
+        dt: Segment time-step vector in seconds.
+        batt: Boolean source mask for battery columns.
+        engines: Boolean transmitter mask for gas-turbine columns.
+        nsrc: Number of source columns.
+        e_es: Source energy used in FAST mission energy units, mutated in place.
+        eleft_es: Remaining source energy, mutated in place.
+        soc, voltage, current, capacity, c_rate: Detailed battery histories
+            mutated in place when cell sizing is prescribed.
+        lam_dwn: Downstream split history, set to zero after battery cutoff.
+        mass: Mission mass history, included for parity with the MATLAB call
+            signature.
+        seg_beg: Zero-based beginning row of the active mission segment.
+
+    Outputs:
+        None. History arrays are updated in place to match PropAnalysis.
+
+    Assumptions:
+        Off-design non-electric missions shut battery contribution off when SOC
+        or available energy is exhausted; electric-only missions keep the
+        requested power history because no alternate fuel source exists.
+    """
 
     if not np.any(batt):
         return
@@ -1278,7 +1376,28 @@ def estimate_fuel_use(
     mdot_fuel,
     dmdt,
 ):
-    """Estimate fuel use for engines with native or supplied fuel models."""
+    """Estimate fuel use for engines with native or supplied fuel models.
+
+    Inputs:
+        aircraft: Aircraft dictionary with propulsion class and engine data.
+        pout, psupp: Component output and supplemental power histories in W.
+        dt: Segment time steps in seconds.
+        fuel, engines: Boolean masks for fuel sources and engine transmitters.
+        nsrc, ntrn: Number of source and transmitter components.
+        efuel: Fuel specific energy in FAST mission energy units.
+        alt, mach, tout: Flight condition and thrust histories.
+        fburn, mass, e_es, eleft_es, sfc, mdot_fuel, dmdt: History arrays
+            mutated in place.
+
+    Outputs:
+        None. Fuel burn, source energy, mass, SFC, and mass-flow histories are
+        updated in place for the active segment.
+
+    Assumptions:
+        A custom FuelFlowModel takes precedence. Otherwise turbofan fuel uses
+        SimpleOffDesign and turboprop/piston fuel uses the nonlinear sizing
+        path, matching FAST's class-dependent branch.
+    """
 
     fuel_model = aircraft["Specs"]["Propulsion"].get("FuelFlowModel")
     aircraft_class = aircraft["Specs"]["TLAR"]["Class"]

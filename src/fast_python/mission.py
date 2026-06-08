@@ -893,7 +893,35 @@ def cruise_breguet_power_history(
     phi,
     soc,
 ):
-    """Return Breguet power, energy, and mass histories for one cruise."""
+    """Return Breguet power, energy, and mass histories for one cruise.
+
+    Inputs:
+        aircraft: Aircraft dictionary, used for detailed battery settings.
+        arch: FAST propulsion architecture label such as AC, E, PHE, SHE, TE,
+            or PE.
+        mass: Segment mass history in kg; updated in place for fuel-burning
+            Breguet branches.
+        ddist: Distance increments in meters.
+        dtime: Time increments in seconds.
+        velocity: Cruise true airspeed history in m/s.
+        gravity: Local gravitational acceleration in m/s^2.
+        efuel, ebatt: Fuel and battery specific energy values in FAST mission
+            energy units per kg.
+        lift_drag: Segment L/D ratio.
+        eta_prop, eta_em, eta_eg, eta_gt: Propulsive, motor, generator, and
+            gas-turbine efficiencies.
+        phi: Electric/fuel power split fraction.
+        soc: Battery SOC history in percent; updated when detailed cells run.
+
+    Outputs:
+        Tuple of fuel power, battery power, propulsor power, motor power,
+        generator power, required power, fuel-burn increments, fuel-energy
+        increments, battery-energy increments, phi history, and SOC history.
+
+    Assumptions:
+        The branch equations follow EvalCruiseBRE. Detailed-battery branches
+        may reduce battery contribution after SOC depletion in hybrid missions.
+    """
 
     npoint = len(mass)
     pfuel = np.zeros(npoint)
@@ -1039,7 +1067,24 @@ def cruise_breguet_power_history(
 
 
 def cruise_breguet_discharge_battery(aircraft, pbatt, dtime, soc, phi_history, arch):
-    """Update CruiseBRE battery power and SOC with FAST's cell model."""
+    """Update CruiseBRE battery power and SOC with FAST's cell model.
+
+    Inputs:
+        aircraft: Aircraft dictionary with detailed battery cell counts.
+        pbatt: Battery power history in W, mutated in place.
+        dtime: Time-step vector in seconds.
+        soc: SOC history in percent, mutated in place.
+        phi_history: Electric split history, set to zero after depletion for
+            hybrids.
+        arch: CruiseBRE architecture label.
+
+    Outputs:
+        Updated pbatt, soc, and phi_history arrays.
+
+    Side effects:
+        Sets Mission.History.Flags.SOCOff for depleted hybrid missions when
+        the flag structure exists.
+    """
 
     battery = aircraft["Specs"]["Power"]["Battery"]
     voltage, current, power_out, capacity, soc_values, c_rate = discharging(
@@ -1069,7 +1114,17 @@ def cruise_breguet_discharge_battery(aircraft, pbatt, dtime, soc, phi_history, a
 
 
 def cruise_breguet_efficiency_triplet(arch, eta_prop, eta_em, eta_eg, eta_gt):
-    """Return the eta1/eta2/eta3 coefficients used by EvalCruiseBRE."""
+    """Return the eta1/eta2/eta3 coefficients used by EvalCruiseBRE.
+
+    Inputs:
+        arch: CruiseBRE architecture label.
+        eta_prop, eta_em, eta_eg, eta_gt: Propulsive, motor, generator, and
+            gas-turbine efficiencies.
+
+    Outputs:
+        Three coefficients that map fuel and battery power into required
+        propulsive power for the Breguet cruise equations.
+    """
 
     if arch == "AC":
         return eta_gt, 0, eta_prop
@@ -1094,7 +1149,24 @@ def cruise_breguet_source_energy(
     fuel_energy,
     battery_energy,
 ):
-    """Map aggregate CruiseBRE fuel/battery energy onto source columns."""
+    """Map aggregate CruiseBRE fuel/battery energy onto source columns.
+
+    Inputs:
+        specs: Aircraft Specs dictionary with PropArch.SrcType.
+        history: Mission.History.SI dictionary.
+        seg_beg: Zero-based segment beginning row.
+        npoint: Number of segment control points.
+        fuel_energy: Aggregate fuel energy history.
+        battery_energy: Aggregate battery energy history.
+
+    Outputs:
+        Source energy used and remaining-energy matrices with one column per
+        propulsion source.
+
+    Assumptions:
+        Aggregate fuel energy is assigned to fuel sources and aggregate battery
+        energy to battery sources using FAST's source-type convention.
+    """
 
     src_type = np.asarray(specs["Propulsion"]["PropArch"]["SrcType"], dtype=float).reshape(-1)
     nsrc = len(src_type)

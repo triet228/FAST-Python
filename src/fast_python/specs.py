@@ -1,6 +1,11 @@
 # src/fast_python/specs.py
 
-"""Aircraft and engine specification presets ported from FAST specs packages."""
+"""Aircraft and engine specification presets ported from FAST specs packages.
+
+Preset functions return fresh dictionaries in SI units where the MATLAB package
+stored converted values. Shared builder helpers centralize repeated engine
+fields so individual presets stay close to their source data.
+"""
 
 import numpy as np
 
@@ -325,7 +330,26 @@ def tpe331_14gr_805h():
 
 
 def turbofan_engine_spec(mach, alt, opr, fpr, bpr, tt4_max, design_thrust, no_spools, rpms, fan_gear_ratio, fan_boosters, pax_bleed, leakage, cooling, compressor_eta, turbine_eta, mixing_eta, fan_eta=0.99, core_nozzle_eta=0.99, nozzle_eta=0.99):
-    """Return a common EngineSpecsPkg turbofan dictionary."""
+    """Return a common EngineSpecsPkg turbofan dictionary.
+
+    Inputs:
+        mach: Design Mach number.
+        alt: Design altitude in meters.
+        opr, fpr, bpr: Overall pressure ratio, fan pressure ratio, and bypass
+            ratio.
+        tt4_max: Turbine inlet temperature limit in K.
+        design_thrust: Sea-level-static or design thrust in N.
+        no_spools: Number of engine spools.
+        rpms: Spool speeds in RPM.
+        fan_gear_ratio: Fan gear ratio, or NaN when ungeared.
+        fan_boosters: Whether fan boosters are present.
+        pax_bleed, leakage, cooling: Core-flow fractions.
+        compressor_eta, turbine_eta, mixing_eta: Polytropic efficiencies.
+        fan_eta, core_nozzle_eta, nozzle_eta: Optional component efficiencies.
+
+    Outputs:
+        Engine specification dictionary matching EngineSpecsPkg turbofan fields.
+    """
 
     eta_poly = {
         "Inlet": 0.99,
@@ -369,7 +393,25 @@ def turbofan_engine_spec(mach, alt, opr, fpr, bpr, tt4_max, design_thrust, no_sp
 
 
 def turboprop_engine_spec(mach, alt, opr, tt4_max, req_power, npr, no_spools, rpms, compressor_eta, combustor_eta, turbine_eta, itt_max=None, jet_thrust=None):
-    """Return a common EngineSpecsPkg turboprop/turboshaft dictionary."""
+    """Return a common EngineSpecsPkg turboprop/turboshaft dictionary.
+
+    Inputs:
+        mach: Design Mach number.
+        alt: Design altitude in meters.
+        opr: Overall pressure ratio.
+        tt4_max: Turbine inlet temperature limit in K.
+        req_power: Required shaft power in W.
+        npr: Nozzle pressure ratio.
+        no_spools: Number of spools.
+        rpms: Spool speeds in RPM.
+        compressor_eta, combustor_eta, turbine_eta: Polytropic efficiencies.
+        itt_max: Optional inter-turbine temperature limit in K.
+        jet_thrust: Optional residual jet thrust in N.
+
+    Outputs:
+        Engine specification dictionary matching EngineSpecsPkg turboprop
+        fields.
+    """
 
     engine = {
         "Mach": mach,

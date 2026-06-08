@@ -64,7 +64,21 @@ class ReferenceCaseStore:
         self._cases = None
 
     def match(self, aircraft, mission):
-        """Return the case name and saved output for a supported input pair."""
+        """Return the case name and saved output for a supported input pair.
+
+        Inputs:
+            aircraft: InputAircraft-style dictionary.
+            mission: Mission profile dictionary.
+
+        Outputs:
+            Tuple of fixture case name and deep-copied OutputAircraft data.
+
+        Assumptions:
+            Keys are SHA-256 hashes of JSON-normalized aircraft and mission
+            payloads. Both raw and prepare_aircraft-normalized aircraft are
+            accepted because wrapper examples can be loaded from either side of
+            the normalization boundary.
+        """
 
         key = make_case_key(aircraft, mission)
 
@@ -80,7 +94,16 @@ class ReferenceCaseStore:
         )
 
     def cases(self):
-        """Return cached wrapper reference cases."""
+        """Return cached wrapper reference cases.
+
+        Outputs:
+            List of dictionaries containing case name, accepted keys, and saved
+            OutputAircraft data.
+
+        Side effects:
+            Loads cases lazily from the bundled archive or wrapper examples on
+            first use, then reuses the cached list.
+        """
 
         if self._cases is None:
             if self.archive_path:
@@ -92,13 +115,28 @@ class ReferenceCaseStore:
 
 
 def bundled_reference_archive():
-    """Return the bundled reference archive path."""
+    """Return the bundled reference archive path.
+
+    Outputs:
+        Path to src/fast_python/data/reference_cases.zip.
+    """
 
     return Path(__file__).resolve().parent / "data" / "reference_cases.zip"
 
 
 def resolve_wrapper_path(wrapper_path=None):
-    """Return the FAST-Python-Wrapper path used for reference fixtures."""
+    """Return the FAST-Python-Wrapper path used for reference fixtures.
+
+    Inputs:
+        wrapper_path: Optional explicit checkout path.
+
+    Outputs:
+        Path whose examples directory contains reference case fixtures.
+
+    Assumptions:
+        Environment and common local paths are checked to support both CLI runs
+        and the user's known Windows project layout.
+    """
 
     candidates = []
 
@@ -233,7 +271,17 @@ def load_bundled_case_inputs(case_name):
 
 
 def read_json_from_archive(archive, member_name, validator=None, restore_markers=False):
-    """Read one JSON member from the reference archive."""
+    """Read one JSON member from the reference archive.
+
+    Inputs:
+        archive: Open ZipFile containing bundled reference cases.
+        member_name: Archive member path.
+        validator: Optional JSON validator.
+        restore_markers: True to restore MATLAB row/expression marker objects.
+
+    Outputs:
+        Parsed JSON data, optionally marker-restored for runtime use.
+    """
 
     try:
         raw = archive.read(member_name)
@@ -252,7 +300,19 @@ def read_json_from_archive(archive, member_name, validator=None, restore_markers
 
 
 def make_case_key(aircraft, mission):
-    """Return a stable fingerprint for an aircraft and mission input pair."""
+    """Return a stable fingerprint for an aircraft and mission input pair.
+
+    Inputs:
+        aircraft: FAST aircraft dictionary.
+        mission: FAST mission dictionary.
+
+    Outputs:
+        SHA-256 hex digest over marker-aware, sorted JSON.
+
+    Assumptions:
+        The key is based on JSON-compatible data rather than Python object
+        identity so fixture matching is deterministic across processes.
+    """
 
     payload = {
         "aircraft": build_json_data(aircraft),

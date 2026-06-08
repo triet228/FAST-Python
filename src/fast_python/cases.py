@@ -1,6 +1,12 @@
 # src/fast_python/cases.py
 
-"""Convenience factories for native FAST aircraft and mission case inputs."""
+"""Convenience factories for native FAST aircraft and mission case inputs.
+
+These helpers assemble aircraft and mission dictionaries from the Python
+presets without reading JSON files. Every accessor returns a deep copy so tests
+and exploratory runs can mutate the case data without contaminating future
+factory calls.
+"""
 
 from copy import deepcopy
 

@@ -12,13 +12,34 @@ class OptimizationError(ValueError):
 
 
 def check_flag(main_struct, var):
-    """Return 1 when a dict flag exists and is set to one, otherwise zero."""
+    """Return 1 when a dict flag exists and is set to one, otherwise zero.
+
+    Inputs:
+        main_struct: Dictionary of FAST optimization settings.
+        var: Flag name.
+
+    Outputs:
+        Integer 1 or 0, matching MATLAB logical flags used by OptimizationPkg.
+    """
 
     return 1 if main_struct.get(var) == 1 else 0
 
 
 def feas_step(ng, s, ps):
-    """Return the maximum feasible slack-variable step size."""
+    """Return the maximum feasible slack-variable step size.
+
+    Inputs:
+        ng: Number of inequality constraints.
+        s: Current slack-variable vector.
+        ps: Search direction for the slack variables.
+
+    Outputs:
+        Scalar step length capped at 1.0.
+
+    Assumptions:
+        The tau value and positive-step filtering follow FAST's interior-point
+        phase-I helper, preventing slack variables from crossing zero.
+    """
 
     tau = 0.005
     amax = 1.0
@@ -68,7 +89,20 @@ def gauss_elim(matrix, prow, pcol):
 
 
 def hess_upd(hessian, s, y):
-    """Update a Hessian approximation with FAST's damped BFGS formula."""
+    """Update a Hessian approximation with FAST's damped BFGS formula.
+
+    Inputs:
+        hessian: Current Hessian approximation matrix.
+        s: Parameter step vector.
+        y: Gradient-difference vector.
+
+    Outputs:
+        Updated Hessian approximation matrix.
+
+    Assumptions:
+        Powell damping is applied when curvature is weak, matching FAST's
+        HessUpd implementation used by the interior-point optimizer.
+    """
 
     hessian = np.asarray(hessian, dtype=float)
     s = np.asarray(s, dtype=float).reshape(-1, 1)
@@ -89,7 +123,20 @@ def hess_upd(hessian, s, y):
 
 
 def merit_function(obj_fun, x, con_fun=None, s=None, mu=None):
-    """Evaluate FAST's line-search merit function."""
+    """Evaluate FAST's line-search merit function.
+
+    Inputs:
+        obj_fun: Objective callable returning value, gradient, and info.
+        x: Candidate design vector.
+        con_fun: Optional constraint callable returning inequality and equality
+            residuals.
+        s: Optional slack-variable vector for inequality constraints.
+        mu: Barrier parameter.
+
+    Outputs:
+        Scalar merit value combining objective, log-barrier, and quadratic
+        constraint penalties.
+    """
 
     fvalue, _, info = call_objective(obj_fun, x)
 
@@ -117,7 +164,24 @@ def merit_function(obj_fun, x, con_fun=None, s=None, mu=None):
 
 
 def golden_section(f, x, p, amax=1.0e6, g=None, delta=0.1, tol=1.0e-3):
-    """Run FAST's phase-I golden-section line search."""
+    """Run FAST's phase-I golden-section line search.
+
+    Inputs:
+        f: Scalar objective callable.
+        x: Current design vector.
+        p: Search direction.
+        amax: Maximum allowed step size.
+        g: Optional constraint callable. Positive residuals shrink the bracket.
+        delta: Initial bracket spacing.
+        tol: Step-size convergence tolerance.
+
+    Outputs:
+        Step length selected by the one-dimensional line search.
+
+    Assumptions:
+        The algorithm reproduces FAST's exploratory bracketing rather than a
+        general SciPy optimizer so tests can compare MATLAB oracle values.
+    """
 
     x = np.asarray(x, dtype=float)
     p = np.asarray(p, dtype=float)

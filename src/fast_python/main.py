@@ -1,6 +1,12 @@
 # src/fast_python/main.py
 
-"""Command-line entry point for FAST Python."""
+"""Command-line entry point for FAST Python.
+
+The CLI reads wrapper-style JSON inputs or bundled/native cases, runs the
+selected backend, and writes OutputAircraft plus a lightweight structure map.
+The function names intentionally preserve FAST's uppercase INPUT_DIR/OUTPUT_DIR
+arguments for MATLAB-wrapper familiarity.
+"""
 
 import argparse
 

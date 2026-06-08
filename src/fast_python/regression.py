@@ -1,6 +1,12 @@
 # src/fast_python/regression.py
 
-"""Regression utilities ported from FAST RegressionPkg."""
+"""Regression utilities ported from FAST RegressionPkg.
+
+The regression pipeline searches FAST's historical database, builds
+Gaussian-process inputs, and returns posterior means/variances using the same
+matrix shapes as MATLAB. Missing numeric values are represented with NaN so
+unknown user inputs can be separated from known regression conditions.
+"""
 
 from copy import deepcopy
 

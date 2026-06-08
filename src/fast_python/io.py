@@ -1,6 +1,12 @@
 # src/fast_python/io.py
 
-"""JSON loading, validation, and output helpers for FAST Python runs."""
+"""JSON loading, validation, and output helpers for FAST Python runs.
+
+This layer is responsible for wrapper-compatible serialization details:
+reserved marker dictionaries, "NaN" string round-tripping, stable formatting,
+and lightweight structural validation. Numerical aircraft feasibility is left
+to the native FAST modules rather than duplicated here.
+"""
 
 import json
 from pathlib import Path
@@ -25,7 +31,15 @@ class JsonValidationError(ValueError):
 
 
 def build_input_json_paths(input_dir=None):
-    """Return the aircraft and mission input paths for a run."""
+    """Return the aircraft and mission input paths for a run.
+
+    Inputs:
+        input_dir: Optional directory containing InputAircraft.json and
+            Mission.json. Defaults to the local inputs directory.
+
+    Outputs:
+        Tuple of aircraft JSON path and mission JSON path.
+    """
 
     if input_dir is None:
         base_path = DEFAULT_INPUT_DIR
@@ -39,7 +53,15 @@ def build_input_json_paths(input_dir=None):
 
 
 def build_output_json_paths(output_dir=None):
-    """Return generated OutputAircraft and structure JSON paths."""
+    """Return generated OutputAircraft and structure JSON paths.
+
+    Inputs:
+        output_dir: Optional directory for generated files. Defaults to the
+            local outputs directory.
+
+    Outputs:
+        Tuple of OutputAircraft.json path and OutputAircraftStructure.json path.
+    """
 
     if output_dir is None:
         base_path = DEFAULT_OUTPUT_DIR
@@ -53,7 +75,17 @@ def build_output_json_paths(output_dir=None):
 
 
 def read_raw_json_file(path):
-    """Parse a JSON file and include the path in syntax errors."""
+    """Parse a JSON file and include the path in syntax errors.
+
+    Inputs:
+        path: JSON file path.
+
+    Outputs:
+        Parsed JSON value without marker restoration.
+
+    Assumptions:
+        UTF-8 is used for wrapper-compatible JSON files.
+    """
 
     path = Path(path)
 
@@ -67,7 +99,19 @@ def read_raw_json_file(path):
 
 
 def write_json_file(path, value):
-    """Write a JSON file with stable formatting."""
+    """Write a JSON file with stable formatting.
+
+    Inputs:
+        path: Destination file path.
+        value: JSON-serializable data.
+
+    Outputs:
+        None.
+
+    Side effects:
+        Creates the parent directory and overwrites the JSON file with
+        two-space indentation.
+    """
 
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -128,7 +172,18 @@ def build_json_data(value):
 
 
 def load_json_data(value):
-    """Restore wrapper-compatible marker values from parsed JSON."""
+    """Restore wrapper-compatible marker values from parsed JSON.
+
+    Inputs:
+        value: Parsed JSON value.
+
+    Outputs:
+        Python value with "NaN" converted to float NaN and reserved marker
+        dictionaries converted to MatlabExpression or MatlabRow objects.
+
+    Assumptions:
+        Marker validation has already run for external JSON inputs.
+    """
 
     if isinstance(value, dict):
         if set(value.keys()) == {"_matlab_expression"}:
@@ -245,7 +300,22 @@ def read_json_list_or_scalar(data, keys, file_name):
 
 
 def validate_json_markers(value, file_name, path="", allow_output_markers=False):
-    """Validate reserved marker dictionaries used by wrapper-compatible JSON."""
+    """Validate reserved marker dictionaries used by wrapper-compatible JSON.
+
+    Inputs:
+        value: Parsed JSON subtree.
+        file_name: File label used in validation errors.
+        path: Dot/bracket path to the current subtree.
+        allow_output_markers: True when OutputAircraft _python_type/_repr
+            marker dictionaries are allowed.
+
+    Outputs:
+        None. Raises JsonValidationError for malformed marker dictionaries.
+
+    Assumptions:
+        Keys starting with "_" are reserved so unsupported markers fail early
+        instead of being silently treated as ordinary FAST fields.
+    """
 
     if isinstance(value, dict):
         keys = set(value.keys())
@@ -293,7 +363,19 @@ def validate_json_markers(value, file_name, path="", allow_output_markers=False)
 
 
 def validate_aircraft_json(data):
-    """Validate InputAircraft.json before converting it to Python data."""
+    """Validate InputAircraft.json before converting it to Python data.
+
+    Inputs:
+        data: Parsed JSON object.
+
+    Outputs:
+        None. Raises JsonValidationError when required FAST input fields or
+        marker shapes are missing.
+
+    Assumptions:
+        This is a structural validation layer, not a complete aircraft sizing
+        validation. Numerical feasibility is handled by native FAST modules.
+    """
 
     require_json_object(data, "InputAircraft.json")
     validate_json_markers(data, "InputAircraft.json")
@@ -308,7 +390,19 @@ def validate_aircraft_json(data):
 
 
 def validate_mission_json(data):
-    """Validate Mission.json before converting it to Python data."""
+    """Validate Mission.json before converting it to Python data.
+
+    Inputs:
+        data: Parsed JSON object.
+
+    Outputs:
+        None. Raises JsonValidationError for malformed segment arrays, target
+        arrays, or marker dictionaries.
+
+    Assumptions:
+        Segment arrays must have equal length because process_profile assigns
+        one beginning/end point range per segment.
+    """
 
     require_json_object(data, "Mission.json")
     validate_json_markers(data, "Mission.json")
@@ -385,7 +479,15 @@ def validate_output_structure_json(data):
 
 
 def read_json_file(path, validator=None):
-    """Read and validate a JSON file, then restore marker values."""
+    """Read and validate a JSON file, then restore marker values.
+
+    Inputs:
+        path: JSON file path.
+        validator: Optional validation callable that accepts parsed JSON data.
+
+    Outputs:
+        Runtime Python data with wrapper markers restored.
+    """
 
     data = read_raw_json_file(path)
 
@@ -407,7 +509,18 @@ def require_input_json_file(path):
 
 
 def load_input_json_files(input_dir=None):
-    """Load InputAircraft.json and Mission.json from an input directory."""
+    """Load InputAircraft.json and Mission.json from an input directory.
+
+    Inputs:
+        input_dir: Optional input directory path.
+
+    Outputs:
+        Tuple of aircraft dictionary and mission dictionary.
+
+    Side effects:
+        Reads both required JSON files and raises JsonValidationError before a
+        run starts if either file is missing or invalid.
+    """
 
     aircraft_json_path, mission_json_path = build_input_json_paths(input_dir)
 
@@ -421,7 +534,19 @@ def load_input_json_files(input_dir=None):
 
 
 def build_output_aircraft_structure(value):
-    """Return a recursive structure map for OutputAircraft data."""
+    """Return a recursive structure map for OutputAircraft data.
+
+    Inputs:
+        value: OutputAircraft subtree.
+
+    Outputs:
+        Dictionary/list/type-name structure description suitable for
+        OutputAircraftStructure.json.
+
+    Assumptions:
+        For lists, the first item represents the element structure. This mirrors
+        the wrapper's lightweight schema output rather than a full JSON Schema.
+    """
 
     if isinstance(value, dict):
         return {

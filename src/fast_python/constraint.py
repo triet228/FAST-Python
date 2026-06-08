@@ -1,6 +1,13 @@
 # src/fast_python/constraint.py
 
-"""Constraint diagram helpers ported from FAST ConstraintDiagramPkg."""
+"""Constraint diagram helpers ported from FAST ConstraintDiagramPkg.
+
+Constraint functions operate on wing-loading and thrust-to-weight grids and
+return residuals with FAST's sign convention: feasible points are on the
+non-positive side for the plotted constraints. Inputs use SI aircraft fields
+internally, with English-unit conversions only where the original FAR 25
+relations require them.
+"""
 
 import numpy as np
 

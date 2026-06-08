@@ -31,7 +31,23 @@ class FastPython:
         self.reference_store = ReferenceCaseStore(reference_path)
 
     def run(self, aircraft, mission):
-        """Run a supported FAST aircraft and mission case."""
+        """Run a supported FAST aircraft and mission case.
+
+        Inputs:
+            aircraft: InputAircraft-style dictionary. Compact PropArch strings
+                are normalized before matching fixture keys.
+            mission: Mission profile dictionary loaded from Mission.json or a
+                bundled reference case.
+
+        Outputs:
+            Dictionary with status, mtow in kg, full OutputAircraft data, log,
+            backend name, and matched fixture case name.
+
+        Assumptions:
+            The reference backend intentionally matches exact serialized inputs
+            instead of interpolating results. Unsupported inputs fail loudly so
+            native algorithm coverage can be added where needed.
+        """
 
         aircraft = prepare_aircraft(aircraft)
 
@@ -56,13 +72,35 @@ class FastPython:
 
 
 def run(aircraft, mission, reference_path=None):
-    """Run FAST with the default Python backend."""
+    """Run FAST with the default Python backend.
+
+    Inputs:
+        aircraft: FAST aircraft dictionary.
+        mission: FAST mission profile dictionary.
+        reference_path: Optional FAST-Python-Wrapper checkout used only when
+            bundled fixture data is unavailable.
+
+    Outputs:
+        The same result dictionary returned by FastPython.run().
+    """
 
     return FastPython(reference_path).run(aircraft, mission)
 
 
 def get_nested(value, keys):
-    """Read a nested dictionary field."""
+    """Read a required nested dictionary field.
+
+    Inputs:
+        value: Root dictionary.
+        keys: Ordered path components.
+
+    Outputs:
+        The leaf value at the requested path.
+
+    Assumptions:
+        Missing keys should raise KeyError. Callers use this for required FAST
+        output fields where silent defaults would hide fixture corruption.
+    """
 
     current = value
 

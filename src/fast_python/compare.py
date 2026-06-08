@@ -1,6 +1,12 @@
 # src/fast_python/compare.py
 
-"""Output comparison helpers for FAST parity checks."""
+"""Output comparison helpers for FAST parity checks.
+
+The reference tests compare Python dictionaries against wrapper-generated JSON
+where MATLAB row/column vectors, NaN values, and saved output markers can all
+represent equivalent data in different shapes. This module keeps those rules in
+one place so numerical tolerances and ignored metadata paths are explicit.
+"""
 
 import ast
 import math

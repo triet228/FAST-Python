@@ -1,6 +1,12 @@
 # src/fast_python/oew.py
 
-"""Operating empty weight helpers ported from OEWPkg."""
+"""Operating empty weight helpers ported from OEWPkg.
+
+OEW helpers update aircraft weight estimates from regression data and propulsion
+sizing outputs. Inputs and outputs are aircraft dictionaries in SI units; the
+top-level iteration returns a deep copy so caller-owned sizing state is not
+mutated unexpectedly.
+"""
 
 from copy import deepcopy
 
