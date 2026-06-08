@@ -2,11 +2,11 @@
 
 """Tests for native EAPAnalysis workflow."""
 
+from fast_python import FastPython, run
 from fast_python.analysis import eap_analysis
 from fast_python.io import build_json_data, write_json_file
 from fast_python.main import main
 from fast_python.mission import process_profile
-from fast_python.native import run_native
 from fast_python.propulsion import create_prop_arch, prop_arch_connections
 
 
@@ -28,10 +28,10 @@ def test_eap_analysis_flies_fixed_battery_off_design_mission():
     assert result["Mission"]["History"]["Flags"]["SOCOff"] == [0]
 
 
-def test_run_native_executes_ported_workflow():
-    """Check the native top-level runner on a covered workflow."""
+def test_run_executes_ported_workflow():
+    """Check the public top-level runner on a covered workflow."""
 
-    result = run_native(make_analysis_aircraft())
+    result = run(make_analysis_aircraft())
     history = result["aircraft"]["Mission"]["History"]["SI"]
 
     assert result["status"] == "success"
@@ -40,8 +40,8 @@ def test_run_native_executes_ported_workflow():
     assert abs(history["Performance"]["Dist"][-1] - 20000) < 1.0e-5
 
 
-def test_run_native_accepts_separate_scalar_target_mission():
-    """Check native runner accepts Mission.json scalar target fields."""
+def test_fast_python_run_accepts_separate_scalar_target_mission():
+    """Check FastPython.run accepts Mission.json scalar target fields."""
 
     aircraft = make_analysis_aircraft()
     mission = aircraft.pop("Mission")["Profile"]
@@ -49,7 +49,7 @@ def test_run_native_accepts_separate_scalar_target_mission():
         "Valu": 20000,
         "Type": "Dist",
     }
-    result = run_native(aircraft, mission)
+    result = FastPython().run(aircraft, mission)
     history = result["aircraft"]["Mission"]["History"]["SI"]
 
     assert result["backend"] == "native"
@@ -70,7 +70,7 @@ def test_cli_main_runs_native_json_inputs(tmp_path):
     write_json_file(input_dir / "InputAircraft.json", build_json_data(aircraft))
     write_json_file(input_dir / "Mission.json", build_json_data(mission))
 
-    result = main(INPUT_DIR=input_dir, OUTPUT_DIR=output_dir, backend="native")
+    result = main(INPUT_DIR=input_dir, OUTPUT_DIR=output_dir)
 
     assert result["backend"] == "native"
     assert (output_dir / "OutputAircraft.json").exists()
@@ -82,7 +82,7 @@ def test_cli_main_runs_native_case_factory(tmp_path, monkeypatch):
 
     captured = {}
 
-    def fake_run_native(aircraft, mission):
+    def fake_run(aircraft, mission):
         captured["aircraft"] = aircraft
         captured["mission"] = mission
         return {
@@ -108,7 +108,7 @@ def test_cli_main_runs_native_case_factory(tmp_path, monkeypatch):
             },
         }
 
-    monkeypatch.setattr("fast_python.main.run_native", fake_run_native)
+    monkeypatch.setattr("fast_python.main.run", fake_run)
     result = main(OUTPUT_DIR=tmp_path, native_case_name="ATR42")
 
     assert result["backend"] == "native"

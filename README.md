@@ -17,7 +17,8 @@ Related repositories:
 
 The current package provides:
 
-- A wrapper-compatible Python API: `FastPython.run(aircraft, mission)`.
+- A native Python API: `FastPython.run(aircraft, mission)` and
+  `fast_python.run(aircraft, mission)`.
 - A command-line runner that reads `InputAircraft.json` and `Mission.json`.
 - JSON loaders, validators, and output writers compatible with
   `FAST-Python-Wrapper`.
@@ -88,14 +89,15 @@ The current package provides:
   parsing, parallel-connection bookkeeping, detailed battery discharge
   integration, turbofan nonlinear engine sizing, SimpleOffDesign turbofan
   fuel-flow integration, and turboprop nonlinear fuel-flow integration.
-- A deterministic reference backend for the wrapper-validated fixture cases:
-  `A320`, `AEA`, `ATR42`, and `CeRAS`.
 - A native workflow runner for aircraft/mission combinations covered by the
   currently ported Python packages.
+- An explicit deterministic reference helper for the wrapper-validated fixture
+  cases: `A320`, `AEA`, `ATR42`, and `CeRAS`.
 
-The reference backend is intentionally MATLAB-free at runtime. It uses the
-saved `OutputAircraft.json` fixture outputs from `FAST-Python-Wrapper` while
-the numerical MATLAB algorithms are ported module by module.
+The public run API executes the native Python workflow. Use
+`FAST-Python-Wrapper` when you need to double-check a result against MATLAB
+FAST, or use the explicit reference helper when you need to replay a saved
+wrapper fixture.
 
 ## Repository Layout
 
@@ -109,7 +111,7 @@ src/fast_python/
   compare.py        FAST output parity comparison helpers
   constraint.py     ConstraintDiagramPkg helper constraints
   cost.py           CostPkg battery replacement cost model
-  core.py           FastPython API
+  core.py           FastPython native run API
   database.py       IDEAS_DB.mat loader and DatabasePkg helpers
   data_struct.py    DataStructPkg defaults, SpecProcessing, mission history
   engine.py         EngineModelPkg cycle, component, and fuel-flow helpers
@@ -118,7 +120,6 @@ src/fast_python/
   main.py           command-line entry point
   markers.py        _matlab_expression and _matlab_row marker objects
   mission.py        Mission profile processing and segment evaluators
-  native.py         top-level native workflow runner
   oew.py            OEWPkg operating-empty-weight iteration
   optimization.py   OptimizationPkg numerical helper routines
   plotting.py       PlotPkg plot-data formatting helpers
@@ -164,8 +165,8 @@ tests/
 - SciPy for reading FAST's historical MATLAB database (`IDEAS_DB.mat`)
 - A local MATLAB FAST checkout when running database-backed workflows or tests
   that need `+DatabasePkg/IDEAS_DB.mat`
-- A `FAST-Python-Wrapper` checkout with example fixtures when running parity
-  tests against the external wrapper oracle
+- A `FAST-Python-Wrapper` checkout when running direct MATLAB parity tests
+  against the external wrapper oracle
 
 The package can run bundled cases without the wrapper checkout. If your FAST
 or wrapper checkout is outside the repository, set the relevant environment
@@ -197,8 +198,8 @@ python -m pip install -e .
 python -m pytest -q
 ```
 
-The tests compare the Python backend against the saved wrapper fixture outputs
-for `A320`, `AEA`, `ATR42`, and `CeRAS`.
+The tests cover the native Python workflow and the saved wrapper fixture
+reference helper for `A320`, `AEA`, `ATR42`, and `CeRAS`.
 
 To also re-test the MATLAB wrapper oracle itself:
 
@@ -248,12 +249,7 @@ FAST Python uses the same input file contract as `FAST-Python-Wrapper`:
 - Output is written in the same wrapper-compatible shape as
   `OutputAircraft.json`, with `OutputAircraftStructure.json` alongside it.
 
-The default `reference` backend is fixture-based: it matches the input against
-the bundled wrapper-validated cases (`A320`, `AEA`, `ATR42`, and `CeRAS`) and
-returns the saved wrapper output. Those inputs must match one of the bundled
-cases.
-
-The `native` backend is the pure Python run path. It reads the same
+The public `run` API is the pure Python run path. It reads the same
 `InputAircraft.json` and `Mission.json` shape used by `FAST-Python-Wrapper` and
 does not require MATLAB or `FAST-Python-Wrapper` at runtime. It still requires
 the aircraft and mission fields covered by the currently ported Python modules;
@@ -261,9 +257,14 @@ database-backed preprocessing also needs a local MATLAB FAST checkout so
 `+DatabasePkg/IDEAS_DB.mat` can be found through `FAST_PATH` or
 `FAST_MATLAB_PATH`.
 
+The explicit `reference` backend is fixture-based: it matches the input against
+the bundled wrapper-validated cases (`A320`, `AEA`, `ATR42`, and `CeRAS`) and
+returns the saved wrapper output. Use it only when you intentionally want saved
+fixture replay instead of a native Python run.
+
 ## Run A Case
 
-Run a bundled supported case:
+Run a bundled supported case with the native Python backend:
 
 ```sh
 python -m fast_python.main --case A320 --output-dir outputs/A320
@@ -285,12 +286,10 @@ python -m fast_python.main \
   --output-dir outputs/A320
 ```
 
-For aircraft and mission inputs covered by the native port, opt into the
-native backend:
+For arbitrary aircraft and mission JSON inputs covered by the native port:
 
 ```sh
 python -m fast_python.main \
-  --backend native \
   --input-dir inputs \
   --output-dir outputs/native
 ```
@@ -303,6 +302,15 @@ python -m fast_python.main \
   --output-dir outputs/native-a320
 ```
 
+To replay a saved wrapper fixture explicitly:
+
+```sh
+python -m fast_python.main \
+  --backend reference \
+  --case A320 \
+  --output-dir outputs/reference-a320
+```
+
 Generated files:
 
 - `outputs/A320/OutputAircraft.json`
@@ -311,24 +319,23 @@ Generated files:
 ## Python API
 
 ```python
-from fast_python import FastPython
-from fast_python.reference import load_bundled_case_inputs
+from fast_python import FastPython, native_case
 
-aircraft, mission = load_bundled_case_inputs("A320")
+aircraft, mission = native_case("A320")
 
 result = FastPython().run(aircraft, mission)
 print(result["status"])
 print(result["mtow"])
-print(result["case"])
+print(result["backend"])
 ```
 
-For workflows covered by the native port, call:
+The module-level helper is the same native run path:
 
 ```python
-from fast_python import native_case, run_native
+from fast_python import native_case, run
 
 aircraft, mission = native_case("A320")
-result = run_native(aircraft, mission)
+result = run(aircraft, mission)
 print(result["backend"])
 print(result["mtow"])
 ```
@@ -345,23 +352,20 @@ print(plot_data["figures"][0]["name"])
 
 ## Current Backend Coverage
 
-The default reference backend supports the wrapper fixture cases exactly:
+The public `FastPython.run()` / `run()` path executes the ported native Python
+workflow for aircraft and mission inputs covered by the currently ported
+modules. It has been checked against the saved `FAST-Python-Wrapper` outputs
+for:
 
 - `A320`
 - `AEA`
 - `ATR42`
 - `CeRAS`
 
-For other aircraft or missions, `FastPython.run()` raises
-`UnsupportedCaseError` with a message explaining that the requested case is
-outside current backend coverage.
-
-The opt-in native backend (`run_native()` or `--backend native`) now executes
-those same wrapper input cases through the ported Python modules. The native
-backend has been checked against the saved `FAST-Python-Wrapper` outputs for
-`A320`, `AEA`, `ATR42`, and `CeRAS` with zero comparable-field differences.
-The reference backend remains the deterministic fixture backend; the native
-backend is the MATLAB-free execution path for the ported workflow.
+For inputs outside current native coverage, run the same case through
+`FAST-Python-Wrapper` to confirm MATLAB FAST behavior, then port the missing
+Python module or data dependency. The `reference` backend remains available only
+as deterministic saved-fixture replay.
 
 ## Porting Notes
 
@@ -379,8 +383,7 @@ The result dictionary follows the wrapper shape:
   "mtow": <kg>,
   "aircraft": <OutputAircraft-compatible dict>,
   "log": <text>,
-  "backend": "reference",
-  "case": <case name>
+  "backend": "native"
 }
 ```
 

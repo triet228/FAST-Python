@@ -17,7 +17,6 @@ from fast_python.cases import (
 )
 from fast_python.core import FastPython, UnsupportedCaseError, run
 from fast_python.history import MissionHistTable, mission_history_table
-from fast_python.native import NativeRunError, RunNative, run_native
 from fast_python.optimization import (
     ConSizeOpt,
     DesOptimize,
@@ -223,8 +222,6 @@ __all__ = [
     "RegionalJetMission00",
     "RegionalJetMission01",
     "RegionalJetMission02",
-    "NativeRunError",
-    "RunNative",
     "RB211_22B_02",
     "TakeoffTestProfile",
     "TurbopropMission00",
@@ -320,7 +317,6 @@ __all__ = [
     "regional_jet_mission02",
     "rb211_22b_02",
     "run",
-    "run_native",
     "takeoff_test_profile",
     "tpe331_14gr_805h",
     "trent_970b_84",

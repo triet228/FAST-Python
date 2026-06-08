@@ -114,6 +114,40 @@ class ReferenceCaseStore:
         return self._cases
 
 
+def run_reference(aircraft, mission, reference_path=None):
+    """Return a saved wrapper fixture output for an exact reference case.
+
+    Inputs:
+        aircraft: InputAircraft-style dictionary.
+        mission: Mission profile dictionary.
+        reference_path: Optional FAST-Python-Wrapper checkout path used only
+            when bundled fixture data is unavailable.
+
+    Outputs:
+        Dictionary with status, mtow, aircraft, log, backend, and case keys.
+
+    Assumptions:
+        This helper is for parity and regression checks. The public FAST Python
+        run API executes the native backend instead of replaying fixtures.
+    """
+
+    aircraft = prepare_aircraft(aircraft)
+    case_name, output = ReferenceCaseStore(reference_path).match(aircraft, mission)
+    mtow = get_nested(output, ["Specs", "Weight", "MTOW"])
+
+    return {
+        "status": "success",
+        "mtow": float(mtow),
+        "aircraft": output,
+        "log": (
+            "FAST-Python reference backend returned the saved "
+            f"FAST-Python-Wrapper {case_name} OutputAircraft baseline."
+        ),
+        "backend": "reference",
+        "case": case_name,
+    }
+
+
 def bundled_reference_archive():
     """Return the bundled reference archive path.
 
@@ -336,3 +370,26 @@ def make_case_key(aircraft, mission):
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def get_nested(value, keys):
+    """Read a required nested dictionary field.
+
+    Inputs:
+        value: Root dictionary.
+        keys: Ordered path components.
+
+    Outputs:
+        The leaf value at the requested path.
+
+    Assumptions:
+        Missing keys should raise KeyError. Callers use this for required FAST
+        output fields where silent defaults would hide fixture corruption.
+    """
+
+    current = value
+
+    for key in keys:
+        current = current[key]
+
+    return current

@@ -11,15 +11,14 @@ arguments for MATLAB-wrapper familiarity.
 import argparse
 
 from fast_python.cases import native_case, native_case_names
-from fast_python.core import FastPython
+from fast_python.core import run
 from fast_python.io import (
     build_output_aircraft_structure,
     load_input_json_files,
     save_output_aircraft,
     save_output_aircraft_structure,
 )
-from fast_python.native import run_native
-from fast_python.reference import CASE_NAMES, load_bundled_case_inputs
+from fast_python.reference import CASE_NAMES, load_bundled_case_inputs, run_reference
 
 
 def main(
@@ -27,7 +26,7 @@ def main(
     OUTPUT_DIR="outputs",
     reference_path=None,
     case=None,
-    backend="reference",
+    backend="native",
     native_case_name=None,
 ):
     """Run FAST Python from JSON inputs and save OutputAircraft JSON files.
@@ -36,10 +35,10 @@ def main(
         INPUT_DIR: Directory containing InputAircraft.json and Mission.json.
         OUTPUT_DIR: Directory where generated output files are written.
         reference_path: Optional FAST-Python-Wrapper checkout path for parity
-            fixture data used by the current backend.
-        case: Optional bundled reference case name, such as A320.
-        backend: "reference" for fixture parity or "native" for the currently
-            ported Python pipeline.
+            fixture data used only by the reference backend.
+        case: Optional bundled aircraft/mission case name, such as A320.
+        backend: "native" for the ported Python pipeline or "reference" for
+            explicit saved-fixture replay.
         native_case_name: Optional native aircraft/profile case factory name.
 
     Outputs:
@@ -51,16 +50,15 @@ def main(
 
     if native_case_name:
         aircraft, mission = native_case(native_case_name)
-        backend = "native"
     elif case:
         aircraft, mission = load_bundled_case_inputs(case)
     else:
         aircraft, mission = load_input_json_files(INPUT_DIR)
 
-    if backend == "native":
-        result = run_native(aircraft, mission)
+    if backend == "reference":
+        result = run_reference(aircraft, mission, reference_path)
     else:
-        result = FastPython(reference_path).run(aircraft, mission)
+        result = run(aircraft, mission)
 
     output_aircraft = result["aircraft"]
     output_structure = build_output_aircraft_structure(output_aircraft)
@@ -70,7 +68,7 @@ def main(
 
     print(f"Status: {result['status']}")
     print(f"Backend: {result['backend']}")
-    print(f"Case: {result.get('case', 'native')}")
+    print(f"Case: {result.get('case', case or native_case_name or 'custom')}")
     print(f"MTOW: {result['mtow']:.6f} kg")
     print(f"Output saved to {output_aircraft_path}")
     print(f"Full structure saved to {output_structure_path}")
@@ -93,7 +91,7 @@ def cli():
         "--case",
         choices=CASE_NAMES,
         default=None,
-        help="Run a bundled reference case instead of reading --input-dir.",
+        help="Run a bundled aircraft/mission case instead of reading --input-dir.",
     )
     parser.add_argument(
         "--native-case",
@@ -109,12 +107,12 @@ def cli():
     parser.add_argument(
         "--wrapper-path",
         default=None,
-        help="FAST-Python-Wrapper checkout path for reference fixtures.",
+        help="FAST-Python-Wrapper checkout path for --backend reference fixtures.",
     )
     parser.add_argument(
         "--backend",
-        choices=("reference", "native"),
-        default="reference",
+        choices=("native", "reference"),
+        default="native",
         help="Execution backend to use.",
     )
 
