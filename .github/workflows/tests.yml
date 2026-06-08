@@ -13,17 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      FAST_MATLAB_PATH: ${{ github.workspace }}/external/FAST
 
     steps:
       - name: Check out FAST-Python
         uses: actions/checkout@v4
-
-      - name: Check out FAST database
-        uses: actions/checkout@v4
-        with:
-          repository: ideas-um/FAST
-          path: external/FAST
 
       - name: Set up Python
         uses: actions/setup-python@v5
