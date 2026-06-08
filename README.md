@@ -7,7 +7,15 @@ Python implementation layer for **Future Aircraft Sizing Tool (FAST)** by The
 IDEAS Lab in the Aerospace Engineering Department at the University of Michigan.
 
 This repository is the Python-side home for converting the MATLAB FAST project
-into Python. The current package provides:
+into Python.
+
+Related repositories:
+
+- [FAST](https://github.com/ideas-um/FAST): MATLAB source project.
+- [FAST-Python-Wrapper](https://github.com/triet228/FAST-Python-Wrapper):
+  wrapper and example fixture project.
+
+The current package provides:
 
 - A wrapper-compatible Python API: `FastPython.run(aircraft, mission)`.
 - A command-line runner that reads `InputAircraft.json` and `Mission.json`.
