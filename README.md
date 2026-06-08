@@ -167,26 +167,24 @@ tests/
 
 - Python 3.11
 - A Python 3.11 virtual environment, such as `venv` or conda
-- SciPy for reading FAST's historical MATLAB database (`IDEAS_DB.mat`)
-- A local MATLAB FAST checkout when running database-backed workflows or tests
-  that need `+DatabasePkg/IDEAS_DB.mat`
+- SciPy for reading the bundled FAST historical database (`IDEAS_DB.mat`)
 - A `FAST-Python-Wrapper` checkout when running direct MATLAB parity tests
   against the external wrapper oracle
 
-The package can run bundled cases without the wrapper checkout. If your FAST
-or wrapper checkout is outside the repository, set the relevant environment
-variables:
+The package can run native cases without the wrapper or MATLAB FAST checkout.
+If your wrapper checkout is outside the repository for optional parity tests,
+set the relevant environment variables:
 
 ```sh
-export FAST_PATH="/path/to/FAST"
 export FAST_PYTHON_WRAPPER_PATH="/path/to/FAST-Python-Wrapper"
+export FAST_PATH="/path/to/FAST"
 ```
 
 PowerShell equivalent:
 
 ```powershell
-$env:FAST_PATH="C:\path\to\FAST"
 $env:FAST_PYTHON_WRAPPER_PATH="C:\path\to\FAST-Python-Wrapper"
+$env:FAST_PATH="C:\path\to\FAST"
 ```
 
 ## Install
@@ -259,8 +257,7 @@ The public `run` API is the pure Python run path. It reads the same
 does not require MATLAB or `FAST-Python-Wrapper` at runtime. The repository
 includes local example input directories under `examples/`. Native runs still
 require the aircraft and mission fields covered by the currently ported Python
-modules; database-backed preprocessing also needs FAST database data to be
-available.
+modules.
 
 The explicit `reference` backend is fixture-based: it matches the input against
 the bundled wrapper-validated cases (`A320`, `AEA`, `ATR42`, and `CeRAS`) and

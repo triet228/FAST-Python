@@ -5,6 +5,7 @@
 import numpy as np
 
 from fast_python.database import (
+    bundled_database_path,
     calc_fan_vals,
     calc_prop_vals,
     load_ideas_database,
@@ -16,13 +17,12 @@ from fast_python.database import (
 from fast_python.regression import search_db
 
 
-def test_resolve_database_path_finds_local_fast_checkout():
-    """Check the local MATLAB FAST database can be resolved."""
+def test_resolve_database_path_finds_bundled_database():
+    """Check the package-local FAST database can be resolved."""
 
     path = resolve_database_path()
 
-    assert path.name == "IDEAS_DB.mat"
-    assert path.parent.name == "+DatabasePkg"
+    assert path == bundled_database_path()
     assert path.exists()
 
 

@@ -32,17 +32,16 @@ def load_ideas_database(fast_path=None):
     """Load FAST's IDEAS_DB.mat as nested Python dictionaries.
 
     Inputs:
-        fast_path: Optional path to the MATLAB FAST checkout. When omitted,
-            FAST_MATLAB_PATH, FAST_PATH, and ~/Projects/FAST are checked.
+        fast_path: Optional explicit path to a MATLAB FAST checkout. When
+            omitted, the bundled repo-local database is used first.
 
     Outputs:
         Dictionary containing the FAST historical aircraft and engine
         databases used by RegressionPkg.
 
     Assumptions:
-        The database is distributed with the MATLAB FAST repository under
-        +DatabasePkg/IDEAS_DB.mat. SciPy handles the MAT-file conversion while
-        this module normalizes arrays/scalars for Python dictionary traversal.
+        SciPy handles the MAT-file conversion while this module normalizes
+        arrays/scalars for Python dictionary traversal.
     """
 
     database_path = resolve_database_path(fast_path)
@@ -82,21 +81,26 @@ def load_ideas_database_file(database_path):
 
 
 def resolve_database_path(fast_path=None):
-    """Return the local path to +DatabasePkg/IDEAS_DB.mat.
+    """Return the local path to IDEAS_DB.mat.
 
     Inputs:
-        fast_path: Optional MATLAB FAST checkout path.
+        fast_path: Optional explicit MATLAB FAST checkout path.
 
     Outputs:
         Path to IDEAS_DB.mat.
 
     Assumptions:
-        The user's local FAST checkout may be provided explicitly, through
-        FAST_MATLAB_PATH/FAST_PATH, or by the common ~/Projects/FAST location.
+        Normal FAST-Python runs use the bundled database. Environment paths are
+        fallback hooks for development checks against an external FAST checkout.
     """
 
     if fast_path is not None:
         return Path(fast_path) / "+DatabasePkg" / "IDEAS_DB.mat"
+
+    bundled_path = bundled_database_path()
+
+    if bundled_path.exists():
+        return bundled_path
 
     candidates = []
 
@@ -106,8 +110,6 @@ def resolve_database_path(fast_path=None):
         if value:
             candidates.append(Path(value))
 
-    candidates.append(Path.home() / "Projects" / "FAST")
-
     for candidate in candidates:
         database_path = candidate / "+DatabasePkg" / "IDEAS_DB.mat"
 
@@ -116,9 +118,16 @@ def resolve_database_path(fast_path=None):
 
     checked = ", ".join(str(candidate) for candidate in candidates)
     raise DatabaseError(
-        "FAST database file was not found. Set FAST_MATLAB_PATH to the MATLAB "
-        f"FAST checkout. Checked: {checked}"
+        "FAST database file was not found. Expected bundled data at "
+        f"{bundled_path}. Optionally set FAST_MATLAB_PATH or FAST_PATH to an "
+        f"external FAST checkout. Checked: {checked}"
     )
+
+
+def bundled_database_path():
+    """Return the package-local IDEAS database path."""
+
+    return Path(__file__).resolve().parent / "data" / "IDEAS_DB.mat"
 
 
 def sanitize_mat_value(value):

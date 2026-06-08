@@ -21,7 +21,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-fast_python = ["data/*.zip"]
+fast_python = ["data/*.zip", "data/*.mat"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
