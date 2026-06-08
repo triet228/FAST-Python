@@ -232,6 +232,52 @@ def test_create_prop_arch_parallel_hybrid_two_engine_turboprop():
     assert_array_close(np.asarray(prop_arch["EtaDwn"])[6, [2, 4]], [0.8, 0.8])
 
 
+def test_create_prop_arch_validates_callable_custom_splits_with_dummy_values():
+    """Check custom split validation accepts one-argument split functions."""
+
+    aircraft = {
+        "Specs": {
+            "Propulsion": {
+                "PropArch": {
+                    "Type": "O",
+                    "Arch": [
+                        [0, 1, 0],
+                        [0, 0, 1],
+                        [0, 0, 0],
+                    ],
+                    "OperUps": lambda lam: [
+                        [0, lam, 0],
+                        [0, 0, 1],
+                        [0, 0, 0],
+                    ],
+                    "OperDwn": lambda lam: [
+                        [0, 1, 0],
+                        [0, 0, lam],
+                        [0, 0, 0],
+                    ],
+                    "EtaUps": [
+                        [0, 1, 0],
+                        [0, 0, 1],
+                        [0, 0, 0],
+                    ],
+                    "EtaDwn": [
+                        [0, 1, 0],
+                        [0, 0, 1],
+                        [0, 0, 0],
+                    ],
+                    "SrcType": [1],
+                    "TrnType": [1],
+                },
+            },
+        },
+    }
+
+    result = create_prop_arch(aircraft)
+
+    assert result["Settings"]["nargOperUps"] == 1
+    assert result["Settings"]["nargOperDwn"] == 1
+
+
 def test_create_prop_arch_series_hybrid_two_engine_turboprop():
     """Check SHE architecture connections and split-dependent matrices."""
 

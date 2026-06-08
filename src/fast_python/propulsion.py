@@ -714,7 +714,13 @@ def validate_custom_prop_arch(prop_arch):
     arch = as_array(prop_arch["Arch"])
 
     for field_name in ("OperUps", "OperDwn", "EtaUps", "EtaDwn"):
-        value = eval_split(prop_arch[field_name]) if callable(prop_arch[field_name]) else as_array(prop_arch[field_name])
+        field_value = prop_arch[field_name]
+
+        if callable(field_value):
+            split_count = callable_arg_count(field_value)
+            value = eval_split(field_value, np.zeros(max(1, split_count)))
+        else:
+            value = as_array(field_value)
 
         if value.shape[0] != value.shape[1]:
             raise PropulsionError(f"Custom PropArch {field_name} matrix must be square.")
