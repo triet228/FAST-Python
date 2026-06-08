@@ -19,8 +19,6 @@ def test_native_case_names_returns_wrapper_baselines():
         "A320",
         "AEA",
         "ATR42",
-        "ATR42_BRE",
-        "ATR42_EPASS",
         "CeRAS",
         "ERJ175LR",
         "ERJ175LR_ClimbThenAccel",
@@ -36,9 +34,6 @@ def test_native_case_names_returns_wrapper_baselines():
         "Example_Turboprop00",
         "Example_Turboprop01",
         "Example_Turboprop02",
-        "Example_BRECruise00",
-        "Example_BRECruise01",
-        "Example_BRECruise02",
         "Example_ParametricRegional",
         "LM100J_Conventional",
         "LM100J_Hybrid",
@@ -54,7 +49,7 @@ def test_native_case_pairs_aircraft_specs_and_mission_profiles():
     ceras_aircraft, ceras_mission = native_case("CeRAS")
     erj_elec_aircraft, erj_elec_mission = native_case("ERJ175LR_Elec")
     lm_hybrid_aircraft, lm_hybrid_mission = native_case("LM100J_Hybrid")
-    example_bre_aircraft, example_bre_mission = native_case("Example_BRECruise02")
+    example_aircraft, example_mission = native_case("Example_ParametricRegional")
 
     assert a320_aircraft["Specs"]["Propulsion"]["Engine"]["OPR"] == 50
     assert a320_mission["Segs"][0] == "Takeoff"
@@ -68,8 +63,8 @@ def test_native_case_pairs_aircraft_specs_and_mission_profiles():
     assert erj_elec_mission["Segs"][0] == "Takeoff"
     assert lm_hybrid_aircraft["Specs"]["Propulsion"]["PropArch"]["Type"] == "O"
     assert lm_hybrid_mission["Segs"][0] == "Takeoff"
-    assert example_bre_aircraft["Specs"]["TLAR"]["MaxPax"] == 100
-    assert example_bre_mission["Segs"] == ["CruiseBRE", "CruiseBRE"]
+    assert example_aircraft["Specs"]["TLAR"]["MaxPax"] == 100
+    assert example_mission["Segs"][0] == "Takeoff"
 
 
 def test_native_case_singletons_return_defensive_copies():

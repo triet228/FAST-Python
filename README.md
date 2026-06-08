@@ -269,6 +269,11 @@ $env:FAST_PYTHON_OUTPUT_PARITY_CASES="A320"
 python -m pytest -q tests\test_matlab_output_aircraft_parity.py
 ```
 
+The end-to-end matrix includes aircraft/profile pairs for which MATLAB FAST
+itself completes `Main(...)`. Deprecated `CruiseBRE` profile examples remain
+covered by the direct MissionProfilesPkg/MissionSegsPkg parity tests because
+the current MATLAB `Main(...)` path does not produce `OutputAircraft` for them.
+
 ## Input Expectations
 
 FAST Python uses the same input file contract as `FAST-Python-Wrapper`:

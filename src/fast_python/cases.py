@@ -11,14 +11,9 @@ factory calls.
 from copy import deepcopy
 
 from fast_python.profiles import (
-    mission_profile_atr_mission_bre,
-    mission_profile_atr_mission_epass,
     mission_profile_a320,
     mission_profile_aea,
     mission_profile_atr42_600,
-    mission_profile_bre_cruise_00,
-    mission_profile_bre_cruise_01,
-    mission_profile_bre_cruise_02,
     mission_profile_ceras,
     mission_profile_erj,
     mission_profile_erj_climb_then_accel,
@@ -72,8 +67,6 @@ NATIVE_CASE_DEFINITIONS = [
     ("A320", a320neo, constant_mission(mission_profile_a320)),
     ("AEA", aea, mission_from_aircraft(mission_profile_aea)),
     ("ATR42", atr42, constant_mission(mission_profile_atr42_600)),
-    ("ATR42_BRE", atr42, constant_mission(mission_profile_atr_mission_bre)),
-    ("ATR42_EPASS", atr42, constant_mission(mission_profile_atr_mission_epass)),
     ("CeRAS", aircraft_ceras, constant_mission(mission_profile_ceras)),
     ("ERJ175LR", erj175lr, mission_from_aircraft(mission_profile_erj)),
     (
@@ -93,9 +86,6 @@ NATIVE_CASE_DEFINITIONS = [
     ("Example_Turboprop00", example_aircraft, constant_mission(mission_profile_turboprop_00)),
     ("Example_Turboprop01", example_aircraft, constant_mission(mission_profile_turboprop_01)),
     ("Example_Turboprop02", example_aircraft, constant_mission(mission_profile_turboprop_02)),
-    ("Example_BRECruise00", example_aircraft, constant_mission(mission_profile_bre_cruise_00)),
-    ("Example_BRECruise01", example_aircraft, constant_mission(mission_profile_bre_cruise_01)),
-    ("Example_BRECruise02", example_aircraft, constant_mission(mission_profile_bre_cruise_02)),
     ("Example_ParametricRegional", example_aircraft, mission_from_aircraft(mission_profile_parametric_regional)),
     ("LM100J_Conventional", lm100j_conventional, mission_from_aircraft(mission_profile_lm100j_no_reserve)),
     ("LM100J_Hybrid", lm100j_hybrid, mission_from_aircraft(mission_profile_lm100j)),
