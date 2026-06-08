@@ -333,13 +333,6 @@ def eval_detailed_takeoff(aircraft):
         seg_end,
     )
     assign_history_vector(history["Weight"], "CurWeight", mass, seg_beg, seg_end)
-    assign_history_matrix(
-        history["Energy"],
-        "Eleft_ES",
-        initial_energy_remaining(specs, npoint),
-        seg_beg,
-        seg_end,
-    )
     cl_max = 2 * mass_takeoff * gravity / (
         rho_takeoff * (tas_takeoff / 1.1) ** 2 * wing_area
     )
@@ -803,34 +796,12 @@ def eval_cruise_breguet(aircraft):
     )
     eas = np.asarray(eas, dtype=float)
     mach = np.asarray(mach, dtype=float)
-    rho = np.asarray(rho, dtype=float)
     pe = mass * gravity * alt
     ke = 0.5 * mass * tas ** 2
     treq = preq / tas
     eta_history = np.ones(npoint) * eta_overall
     tsfc_history = np.ones(npoint) * tsfc
-    source_energy, source_energy_left = cruise_breguet_source_energy(
-        specs,
-        history,
-        seg_beg,
-        npoint,
-        fuel_energy,
-        battery_energy,
-    )
-    ntrn = len(specs["Propulsion"]["PropArch"]["TrnType"])
-    tsfc_matrix = np.tile(tsfc_history.reshape(-1, 1), (1, ntrn))
-    mdot_matrix = np.zeros((npoint, ntrn))
-    engine_cols = [
-        index
-        for index, kind in enumerate(specs["Propulsion"]["PropArch"]["TrnType"])
-        if kind == 1
-    ]
-
-    if engine_cols:
-        mdot = np.zeros(npoint)
-        mdot[:-1] = dfburn / dtime
-        for index in engine_cols:
-            mdot_matrix[:, index] = mdot / len(engine_cols)
+    mdot_fuel = np.zeros(npoint)
 
     assign_history_vector(history["Performance"], "Dist", dist, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Time", time, seg_beg, seg_end)
@@ -841,13 +812,13 @@ def eval_cruise_breguet(aircraft):
     assign_history_vector(history["Performance"], "Acc", dvelocity_dt, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "FPA", fpa, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Mach", mach, seg_beg, seg_end)
-    assign_history_vector(history["Performance"], "Rho", rho, seg_beg, seg_end)
     assign_history_vector(history["Weight"], "CurWeight", mass, seg_beg, seg_end)
     assign_history_vector(history["Weight"], "Fburn", fburn, seg_beg, seg_end)
     assign_history_vector(history["Propulsion"], "Treq", treq, seg_beg, seg_end)
     assign_history_vector(history["Propulsion"], "Eta", eta_history, seg_beg, seg_end)
-    assign_history_matrix(history["Propulsion"], "TSFC", tsfc_matrix, seg_beg, seg_end)
-    assign_history_matrix(history["Propulsion"], "MDotFuel", mdot_matrix, seg_beg, seg_end)
+    assign_history_vector(history["Propulsion"], "TSFC", tsfc_history, seg_beg, seg_end)
+    assign_history_vector(history["Propulsion"], "MDotFuel", mdot_fuel, seg_beg, seg_end)
+    assign_history_vector(history["Power"], "Av", np.zeros(npoint), seg_beg, seg_end)
     assign_history_vector(history["Power"], "Req", preq, seg_beg, seg_end)
     assign_history_vector(history["Power"], "Out", preq, seg_beg, seg_end)
     assign_history_vector(history["Power"], "Fuel", pfuel, seg_beg, seg_end)
@@ -861,14 +832,6 @@ def eval_cruise_breguet(aircraft):
     assign_history_vector(history["Energy"], "KE", ke, seg_beg, seg_end)
     assign_history_vector(history["Energy"], "Fuel", fuel_energy, seg_beg, seg_end)
     assign_history_vector(history["Energy"], "Batt", battery_energy, seg_beg, seg_end)
-    assign_history_matrix(history["Energy"], "E_ES", source_energy, seg_beg, seg_end)
-    assign_history_matrix(
-        history["Energy"],
-        "Eleft_ES",
-        source_energy_left,
-        seg_beg,
-        seg_end,
-    )
     aircraft["Mission"]["History"]["Segment"][seg_beg:seg_end] = [
         "Cruise" for _ in range(npoint)
     ]

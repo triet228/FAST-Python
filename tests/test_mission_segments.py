@@ -115,8 +115,12 @@ def test_eval_cruise_breguet_fills_conventional_range_solution():
     assert_array_close(history["Power"]["Fuel"], expected["pfuel"])
     assert_array_close(history["Power"]["Req"], expected["preq"])
     assert_array_close(history["Power"]["Batt"], [0, 0, 0])
-    assert_array_close(history["Propulsion"]["TSFC"], [[2.0e-5, 2.0e-5]] * 3)
-    assert_array_close(history["Propulsion"]["MDotFuel"][-1], [0, 0])
+    assert_array_close(history["Power"]["Av"], [0, 0, 0])
+    assert_array_close(history["Propulsion"]["TSFC"], [2.0e-5, 2.0e-5, 2.0e-5])
+    assert_array_close(history["Propulsion"]["MDotFuel"], [0, 0, 0])
+    assert_array_close(history["Performance"]["Rho"], [0, 0, 0])
+    assert_array_close(history["Energy"]["E_ES"], [[0], [0], [0]])
+    assert_array_close(history["Energy"]["Eleft_ES"], [[0], [0], [0]])
     assert result["Mission"]["History"]["Segment"] == ["Cruise", "Cruise", "Cruise"]
 
 
