@@ -152,22 +152,26 @@ tests/
 ## Requirements
 
 - Python 3.11
-- The `FAST` conda environment
+- A Python 3.11 virtual environment, such as `venv` or conda
 - SciPy for reading FAST's historical MATLAB database (`IDEAS_DB.mat`)
-- `FAST-Python-Wrapper` checkout with example fixtures when running parity
+- A local MATLAB FAST checkout when running database-backed workflows or tests
+  that need `+DatabasePkg/IDEAS_DB.mat`
+- A `FAST-Python-Wrapper` checkout with example fixtures when running parity
   tests against the external wrapper oracle
 
-Expected local paths from `AGENTS.md`:
+The package can run bundled cases without the wrapper checkout. If your FAST
+or wrapper checkout is outside the repository, set the relevant environment
+variables:
 
-```powershell
-C:\Users\homin\Projects\FAST
-C:\Users\homin\Projects\FAST-Python-Wrapper
+```sh
+export FAST_PATH="/path/to/FAST"
+export FAST_PYTHON_WRAPPER_PATH="/path/to/FAST-Python-Wrapper"
 ```
 
-The package can run bundled cases without the wrapper checkout. If your wrapper
-checkout is somewhere else and you want to run parity tests, set:
+PowerShell equivalent:
 
 ```powershell
+$env:FAST_PATH="C:\path\to\FAST"
 $env:FAST_PYTHON_WRAPPER_PATH="C:\path\to\FAST-Python-Wrapper"
 ```
 
@@ -175,29 +179,14 @@ $env:FAST_PYTHON_WRAPPER_PATH="C:\path\to\FAST-Python-Wrapper"
 
 From this repo:
 
-```powershell
-conda activate FAST
-pip install -e .
-```
-
-If `conda activate FAST` is awkward from an automated shell, the environment
-Python can be called directly:
-
-```powershell
-C:\Users\homin\.conda\envs\FAST\python.exe -m pip install -e .
+```sh
+python -m pip install -e .
 ```
 
 ## Run Tests
 
-```powershell
-conda activate FAST
+```sh
 python -m pytest -q
-```
-
-Direct environment-Python equivalent:
-
-```powershell
-C:\Users\homin\.conda\envs\FAST\python.exe -m pytest -q
 ```
 
 The tests compare the Python backend against the saved wrapper fixture outputs
@@ -205,19 +194,31 @@ for `A320`, `AEA`, `ATR42`, and `CeRAS`.
 
 To also re-test the MATLAB wrapper oracle itself:
 
-```powershell
-cd C:\Users\homin\Projects\FAST-Python-Wrapper
-C:\Users\homin\.conda\envs\FAST\python.exe -m pytest -q
+```sh
+cd /path/to/FAST-Python-Wrapper
+python -m pytest -q
 ```
 
 To run the optional direct MATLAB parity checks for the AircraftSpecsPkg,
 MissionProfilesPkg, and MissionSegsPkg Python ports:
 
+```sh
+FAST_PYTHON_RUN_MATLAB_PARITY=1 \
+FAST_PYTHON_WRAPPER_PATH=/path/to/FAST-Python-Wrapper \
+FAST_PATH=/path/to/FAST \
+python -m pytest -q \
+  tests/test_matlab_aircraft_specs_parity.py \
+  tests/test_matlab_mission_profiles_parity.py \
+  tests/test_matlab_mission_segs_parity.py
+```
+
+PowerShell equivalent:
+
 ```powershell
 $env:FAST_PYTHON_RUN_MATLAB_PARITY="1"
-$env:FAST_PYTHON_WRAPPER_PATH="C:\Users\homin\Projects\FAST-Python-Wrapper"
-$env:FAST_PATH="C:\Users\homin\Projects\FAST"
-C:\Users\homin\.conda\envs\FAST\python.exe -m pytest -q `
+$env:FAST_PYTHON_WRAPPER_PATH="C:\path\to\FAST-Python-Wrapper"
+$env:FAST_PATH="C:\path\to\FAST"
+python -m pytest -q `
   tests\test_matlab_aircraft_specs_parity.py `
   tests\test_matlab_mission_profiles_parity.py `
   tests\test_matlab_mission_segs_parity.py
@@ -233,56 +234,48 @@ covered by the ordinary profile tests.
 
 Run a bundled supported case:
 
-```powershell
-python -m fast_python.main --case A320 --output-dir outputs\A320
-```
-
-Direct environment-Python equivalent:
-
-```powershell
-C:\Users\homin\.conda\envs\FAST\python.exe -m fast_python.main `
-  --case A320 `
-  --output-dir outputs\A320
+```sh
+python -m fast_python.main --case A320 --output-dir outputs/A320
 ```
 
 You can also use any supported wrapper example input directory:
 
-```powershell
-fast-python `
-  --input-dir C:\Users\homin\Projects\FAST-Python-Wrapper\examples\A320\inputs `
-  --output-dir outputs\A320
+```sh
+fast-python \
+  --input-dir /path/to/FAST-Python-Wrapper/examples/A320/inputs \
+  --output-dir outputs/A320
 ```
 
 Or without installing the console script:
 
-```powershell
-C:\Users\homin\.conda\envs\FAST\python.exe -m fast_python.main `
-  --input-dir C:\Users\homin\Projects\FAST-Python-Wrapper\examples\A320\inputs `
-  --output-dir outputs\A320
+```sh
+python -m fast_python.main \
+  --input-dir /path/to/FAST-Python-Wrapper/examples/A320/inputs \
+  --output-dir outputs/A320
 ```
 
 For aircraft and mission inputs covered by the native port, opt into the
 native backend:
 
-```powershell
-C:\Users\homin\.conda\envs\FAST\python.exe -m fast_python.main `
-  --backend native `
-  --input-dir inputs `
-  --output-dir outputs\native
+```sh
+python -m fast_python.main \
+  --backend native \
+  --input-dir inputs \
+  --output-dir outputs/native
 ```
 
 Or run a native Python preset pair directly:
 
-```powershell
-C:\Users\homin\.conda\envs\FAST\python.exe -m fast_python.main `
-  --native-case A320 `
-  --output-dir outputs\native-a320
+```sh
+python -m fast_python.main \
+  --native-case A320 \
+  --output-dir outputs/native-a320
 ```
 
 Generated files:
 
-- `outputs\A320\OutputAircraft.json`
-- `outputs\A320\OutputAircraftStructure.json`
+- `outputs/A320/OutputAircraft.json`
+- `outputs/A320/OutputAircraftStructure.json`
 
 ## Python API
 
