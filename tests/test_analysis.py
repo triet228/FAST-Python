@@ -2,6 +2,8 @@
 
 """Tests for native EAPAnalysis workflow."""
 
+import pytest
+
 from fast_python import FastPython, run
 from fast_python.analysis import eap_analysis
 from fast_python.io import build_json_data, write_json_file
@@ -38,6 +40,36 @@ def test_run_executes_ported_workflow():
     assert result["backend"] == "native"
     assert abs(result["mtow"] - 1000) < 1.0e-9
     assert abs(history["Performance"]["Dist"][-1] - 20000) < 1.0e-5
+
+
+def test_run_responds_to_mission_distance_not_fixture():
+    """Check the native runner responds to mission physics inputs."""
+
+    short_aircraft = make_analysis_aircraft()
+    long_aircraft = make_analysis_aircraft()
+    long_aircraft["Mission"]["Profile"]["Target"]["Valu"] = [40000]
+
+    short_result = run(short_aircraft)
+    long_result = run(long_aircraft)
+    short_history = short_result["aircraft"]["Mission"]["History"]["SI"]
+    long_history = long_result["aircraft"]["Mission"]["History"]["SI"]
+
+    assert abs(short_history["Performance"]["Dist"][-1] - 20000) < 1.0e-5
+    assert abs(long_history["Performance"]["Dist"][-1] - 40000) < 1.0e-5
+    assert long_history["Performance"]["Time"][-1] > short_history["Performance"]["Time"][-1]
+    assert final_es_energy(long_history) > final_es_energy(short_history) * 1.9
+
+
+def test_run_invokes_mission_flight_loop(monkeypatch):
+    """Check public runs cannot pass by bypassing the mission algorithm."""
+
+    def fail_fly_mission(_aircraft):
+        raise RuntimeError("fly_mission was called")
+
+    monkeypatch.setattr("fast_python.analysis.fly_mission", fail_fly_mission)
+
+    with pytest.raises(RuntimeError, match="fly_mission was called"):
+        run(make_analysis_aircraft())
 
 
 def test_fast_python_run_accepts_separate_scalar_target_mission():
@@ -220,3 +252,9 @@ def make_analysis_aircraft():
             }
         },
     }
+
+
+def final_es_energy(history):
+    """Return final stored-source energy used by the compact analysis fixture."""
+
+    return history["Energy"]["E_ES"][-1][0]
