@@ -273,6 +273,9 @@ The end-to-end matrix includes aircraft/profile pairs for which MATLAB FAST
 itself completes `Main(...)`. Deprecated `CruiseBRE` profile examples remain
 covered by the direct MissionProfilesPkg/MissionSegsPkg parity tests because
 the current MATLAB `Main(...)` path does not produce `OutputAircraft` for them.
+`ERJ190_FE` is kept in the matrix as an expected failure when strict equality
+fails because MATLAB FAST itself reaches `Settings.Converged = 0` for that
+fully electric sizing case.
 
 ## Input Expectations
 
