@@ -230,6 +230,29 @@ unless `FAST_PYTHON_RUN_MATLAB_PARITY=1`.
 MATLAB lacks Aerospace Toolbox `convlength`; the native Python constants remain
 covered by the ordinary profile tests.
 
+## Input Expectations
+
+FAST Python uses the same input file contract as `FAST-Python-Wrapper`:
+
+- `InputAircraft.json` contains the FAST aircraft dictionary.
+- `Mission.json` contains either the wrapper-style mission object with a
+  top-level `Profile` dictionary, or the raw mission profile dictionary itself.
+- Output is written in the same wrapper-compatible shape as
+  `OutputAircraft.json`, with `OutputAircraftStructure.json` alongside it.
+
+The default `reference` backend is fixture-based: it matches the input against
+the bundled wrapper-validated cases (`A320`, `AEA`, `ATR42`, and `CeRAS`) and
+returns the saved wrapper output. Those inputs must match one of the bundled
+cases.
+
+The `native` backend is the pure Python run path. It reads the same
+`InputAircraft.json` and `Mission.json` shape used by `FAST-Python-Wrapper` and
+does not require MATLAB or `FAST-Python-Wrapper` at runtime. It still requires
+the aircraft and mission fields covered by the currently ported Python modules;
+database-backed preprocessing also needs a local MATLAB FAST checkout so
+`+DatabasePkg/IDEAS_DB.mat` can be found through `FAST_PATH` or
+`FAST_MATLAB_PATH`.
+
 ## Run A Case
 
 Run a bundled supported case:
