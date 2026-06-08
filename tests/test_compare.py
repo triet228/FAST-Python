@@ -208,3 +208,47 @@ def test_compare_json_value_ignores_missing_internal_profile_function():
 
     assert compared > 0
     assert failures == []
+
+
+def test_compare_json_value_ignores_prop_arch_split_handles():
+    """Check executable split handles do not obscure OutputAircraft parity."""
+
+    failures, compared = compare_json_value(
+        {
+            "Specs": {
+                "Propulsion": {
+                    "PropArch": {
+                        "OperUps": {
+                            "_python_type": "function",
+                            "_repr": "<function constant_split at 0x1>",
+                        },
+                        "OperDwn": {
+                            "_python_type": "function",
+                            "_repr": "<function constant_split at 0x2>",
+                        },
+                        "TrnType": [1],
+                    }
+                }
+            }
+        },
+        {
+            "Specs": {
+                "Propulsion": {
+                    "PropArch": {
+                        "OperUps": {
+                            "_python_type": "object",
+                            "_repr": "<matlab.object object at 0x1>",
+                        },
+                        "OperDwn": {
+                            "_python_type": "object",
+                            "_repr": "<matlab.object object at 0x2>",
+                        },
+                        "TrnType": [1],
+                    }
+                }
+            }
+        },
+    )
+
+    assert compared > 0
+    assert failures == []
