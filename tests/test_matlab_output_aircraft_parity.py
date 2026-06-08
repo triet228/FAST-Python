@@ -15,6 +15,36 @@ from fast_python.core import run
 from fast_python.io import build_json_data
 
 
+OUTPUT_PARITY_MATLAB_CASES = {
+    "A320": ("A320Neo", "A320"),
+    "AEA": ("AEA", "AEAProfile"),
+    "ATR42": ("ATR42", "ATR42_600"),
+    "ATR42_BRE": ("ATR42", "ATRMissionBRE"),
+    "ATR42_EPASS": ("ATR42", "ATRMissionEPASS"),
+    "CeRAS": ("CeRAS", "CeRAS"),
+    "ERJ175LR": ("ERJ175LR", "ERJ"),
+    "ERJ175LR_ClimbThenAccel": ("ERJ175LR", "ERJ_ClimbThenAccel"),
+    "ERJ175LR_Elec": ("ERJ175LR_Elec", "ERJ"),
+    "ERJ190_E2": ("ERJ190_E2", "ERJ"),
+    "ERJ190_FE": ("ERJ190_FE", "ERJ"),
+    "Example_Notional00": ("Example", "NotionalMission00"),
+    "Example_Notional01": ("Example", "NotionalMission01"),
+    "Example_Notional02": ("Example", "NotionalMission02"),
+    "Example_RegionalJet00": ("Example", "RegionalJetMission00"),
+    "Example_RegionalJet01": ("Example", "RegionalJetMission01"),
+    "Example_RegionalJet02": ("Example", "RegionalJetMission02"),
+    "Example_Turboprop00": ("Example", "TurbopropMission00"),
+    "Example_Turboprop01": ("Example", "TurbopropMission01"),
+    "Example_Turboprop02": ("Example", "TurbopropMission02"),
+    "Example_BRECruise00": ("Example", "BRECruise00"),
+    "Example_BRECruise01": ("Example", "BRECruise01"),
+    "Example_BRECruise02": ("Example", "BRECruise02"),
+    "Example_ParametricRegional": ("Example", "ParametricRegional"),
+    "LM100J_Conventional": ("LM100J_Conventional", "LM100J_NoRsrv"),
+    "LM100J_Hybrid": ("LM100J_Hybrid", "LM100J"),
+}
+
+
 def selected_case_names():
     """Return requested output-parity cases, defaulting to the full matrix."""
 
@@ -98,8 +128,11 @@ def test_output_aircraft_matches_matlab_fast(matlab_wrapper, case_name):
     wrapper, wrapper_build_json_data = matlab_wrapper
     aircraft, mission = native_case(case_name)
     actual = build_json_data(run(deepcopy(aircraft), deepcopy(mission))["aircraft"])
-    matlab_result = wrapper.run(deepcopy(aircraft), deepcopy(mission))
-    expected = wrapper_build_json_data(matlab_result["aircraft"])
+    expected = matlab_output_aircraft(
+        wrapper,
+        wrapper_build_json_data,
+        case_name,
+    )
     failures, compared = compare_json_value(actual, expected, "Aircraft")
 
     assert compared > 0
@@ -107,3 +140,19 @@ def test_output_aircraft_matches_matlab_fast(matlab_wrapper, case_name):
     if failures:
         preview = "\n".join(failures[:50])
         pytest.fail(f"{case_name} OutputAircraft parity failures:\n{preview}")
+
+
+def matlab_output_aircraft(wrapper, wrapper_build_json_data, case_name):
+    """Run the canonical MATLAB AircraftSpecsPkg/MissionProfilesPkg pair."""
+
+    aircraft_name, profile_name = OUTPUT_PARITY_MATLAB_CASES[case_name]
+    wrapper.engine.evalc(
+        f"""
+        matlab_aircraft = Main(...
+            AircraftSpecsPkg.{aircraft_name}(), ...
+            @MissionProfilesPkg.{profile_name});
+        """,
+        nargout=1,
+    )
+    matlab_aircraft = wrapper._to_python_data(wrapper.engine.workspace["matlab_aircraft"])
+    return wrapper_build_json_data(matlab_aircraft)
