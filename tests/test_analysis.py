@@ -4,6 +4,7 @@
 
 import pytest
 
+import fast_python.core as core
 from fast_python import FastPython, run
 from fast_python.analysis import eap_analysis
 from fast_python.io import build_json_data, write_json_file
@@ -42,6 +43,34 @@ def test_run_executes_ported_workflow():
     assert abs(history["Performance"]["Dist"][-1] - 20000) < 1.0e-5
 
 
+def test_run_traverses_native_pipeline(monkeypatch):
+    """Check public runs traverse the native FAST pipeline stages."""
+
+    calls = []
+    stage_names = [
+        "prepare_aircraft",
+        "pre_spec_processing",
+        "create_prop_arch",
+        "prop_arch_connections",
+        "process_profile",
+        "eap_analysis",
+    ]
+
+    for stage_name in stage_names:
+        original = getattr(core, stage_name)
+
+        def wrapped(*args, _stage_name=stage_name, _original=original, **kwargs):
+            calls.append(_stage_name)
+            return _original(*args, **kwargs)
+
+        monkeypatch.setattr(core, stage_name, wrapped)
+
+    result = run(make_analysis_aircraft())
+
+    assert result["backend"] == "native"
+    assert calls == stage_names
+
+
 def test_run_responds_to_mission_distance_not_fixture():
     """Check the native runner responds to mission physics inputs."""
 
@@ -58,6 +87,23 @@ def test_run_responds_to_mission_distance_not_fixture():
     assert abs(long_history["Performance"]["Dist"][-1] - 40000) < 1.0e-5
     assert long_history["Performance"]["Time"][-1] > short_history["Performance"]["Time"][-1]
     assert final_es_energy(long_history) > final_es_energy(short_history) * 1.9
+
+
+def test_run_responds_to_aero_efficiency_not_fixture():
+    """Check aerodynamic inputs affect mission energy demand."""
+
+    baseline_aircraft = make_analysis_aircraft()
+    low_efficiency_aircraft = make_analysis_aircraft()
+    set_lift_to_drag(low_efficiency_aircraft, 5)
+
+    baseline_result = run(baseline_aircraft)
+    low_efficiency_result = run(low_efficiency_aircraft)
+    baseline_history = baseline_result["aircraft"]["Mission"]["History"]["SI"]
+    low_efficiency_history = low_efficiency_result["aircraft"]["Mission"]["History"]["SI"]
+
+    assert abs(baseline_history["Performance"]["Dist"][-1] - 20000) < 1.0e-5
+    assert abs(low_efficiency_history["Performance"]["Dist"][-1] - 20000) < 1.0e-5
+    assert final_es_energy(low_efficiency_history) > final_es_energy(baseline_history) * 1.9
 
 
 def test_run_invokes_mission_flight_loop(monkeypatch):
@@ -103,8 +149,11 @@ def test_cli_main_runs_native_json_inputs(tmp_path):
     write_json_file(input_dir / "Mission.json", build_json_data(mission))
 
     result = main(INPUT_DIR=input_dir, OUTPUT_DIR=output_dir)
+    history = result["aircraft"]["Mission"]["History"]["SI"]
 
     assert result["backend"] == "native"
+    assert abs(history["Performance"]["Dist"][-1] - 20000) < 1.0e-5
+    assert final_es_energy(history) > 0
     assert (output_dir / "OutputAircraft.json").exists()
     assert (output_dir / "OutputAircraftStructure.json").exists()
 
@@ -258,3 +307,10 @@ def final_es_energy(history):
     """Return final stored-source energy used by the compact analysis fixture."""
 
     return history["Energy"]["E_ES"][-1][0]
+
+
+def set_lift_to_drag(aircraft, value):
+    """Mutate all compact-fixture segment L/D values for sensitivity checks."""
+
+    for segment_name in ("Clb", "Crs", "Des"):
+        aircraft["Specs"]["Aero"]["L_D"][segment_name] = value
