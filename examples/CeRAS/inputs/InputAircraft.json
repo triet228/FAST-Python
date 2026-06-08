@@ -1,0 +1,152 @@
+{
+  "Specs": {
+    "TLAR": {
+      "EIS": 2005,
+      "Class": "Turbofan",
+      "MaxPax": 218.88276438829473
+    },
+    "Aero": {
+      "L_D": {
+        "ClbCF": 1,
+        "CrsCF": 1,
+        "Clb": 13,
+        "Crs": 17,
+        "Des": 13
+      },
+      "W_S": {
+        "SLS": 739.8499168620069
+      }
+    },
+    "Propulsion": {
+      "MDotCF": 1.2,
+      "PropArch": {
+        "Type": "C"
+      },
+      "Engine": {
+        "Mach": 0.05,
+        "Alt": 0,
+        "OPR": 24.5,
+        "FPR": 1.6,
+        "BPR": 4,
+        "Tt4Max": 1711,
+        "TempLimit": {
+          "Val": "NaN",
+          "Type": "NaN"
+        },
+        "DesignThrust": 64543.69563742985,
+        "NoSpools": 2,
+        "RPMs": {
+          "_matlab_row": [
+            7400,
+            17820
+          ]
+        },
+        "FanGearRatio": "NaN",
+        "FanBoosters": false,
+        "CoreFlow": {
+          "PaxBleed": 0.03,
+          "Leakage": 0.01,
+          "Cooling": 0
+        },
+        "MaxIter": 300,
+        "EtaPoly": {
+          "Inlet": 0.99,
+          "Diffusers": 0.99,
+          "Fan": 0.99,
+          "Compressors": 0.94,
+          "BypassNozzle": 0.99,
+          "Combustor": 0.995,
+          "Turbines": 0.94,
+          "CoreNozzle": 0.99,
+          "Nozzles": 0.99,
+          "Mixing": 0
+        },
+        "PerElec": 0,
+        "Cff3": 0.299,
+        "Cff2": -0.346,
+        "Cff1": 0.701,
+        "Cffch": 8e-07,
+        "HEcoeff": 1
+      },
+      "NumEngines": 2,
+      "T_W": {
+        "SLS": 0.3
+      },
+      "Eta": {
+        "Prop": 0.8
+      }
+    },
+    "Weight": {
+      "WairfCF": 1,
+      "MTOW": 86182.5503,
+      "EG": "NaN",
+      "EM": 0,
+      "Fuel": 9427.91741045,
+      "Batt": 0
+    },
+    "Performance": {
+      "Vels": {
+        "Tko": 69.45000000000007,
+        "Crs": 0.78
+      },
+      "Alts": {
+        "Tko": 0,
+        "Crs": 10668
+      },
+      "Range": 4630000,
+      "RCMax": 11.430000000000001
+    },
+    "Power": {
+      "SpecEnergy": {
+        "Fuel": 12,
+        "Batt": 0.25
+      },
+      "LamDwn": {
+        "SLS": 0,
+        "Tko": 0,
+        "Clb": 0,
+        "Crs": 0,
+        "Des": 0,
+        "Lnd": 0
+      },
+      "LamUps": {
+        "SLS": 0,
+        "Tko": 0,
+        "Clb": 0,
+        "Crs": 0,
+        "Des": 0,
+        "Lnd": 0
+      },
+      "Eta": {
+        "EM": 0.96,
+        "EG": 0.96
+      },
+      "P_W": {
+        "SLS": "NaN",
+        "EM": 10,
+        "EG": "NaN"
+      },
+      "Battery": {
+        "ParCells": "NaN",
+        "SerCells": "NaN",
+        "BegSOC": "NaN"
+      }
+    }
+  },
+  "Settings": {
+    "TkoPoints": "NaN",
+    "ClbPoints": "NaN",
+    "CrsPoints": "NaN",
+    "DesPoints": "NaN",
+    "OEW": {
+      "MaxIter": 50,
+      "Tol": 0.001
+    },
+    "Analysis": {
+      "MaxIter": 50,
+      "Type": 1
+    },
+    "Plotting": 0,
+    "Table": 0
+  }
+}

@@ -131,6 +131,11 @@ src/fast_python/
   retrofit.py       RetrofitPkg option helpers
   safety.py         SafetyPkg fault-tree analysis helpers
   specs.py          AircraftSpecsPkg and EngineSpecsPkg preset definitions
+examples/
+  A320/inputs/      local wrapper-style JSON input case
+  AEA/inputs/       local wrapper-style JSON input case
+  ATR42/inputs/     local wrapper-style JSON input case
+  CeRAS/inputs/     local wrapper-style JSON input case
 tests/
   test_cases.py
   test_analysis.py
@@ -251,11 +256,11 @@ FAST Python uses the same input file contract as `FAST-Python-Wrapper`:
 
 The public `run` API is the pure Python run path. It reads the same
 `InputAircraft.json` and `Mission.json` shape used by `FAST-Python-Wrapper` and
-does not require MATLAB or `FAST-Python-Wrapper` at runtime. It still requires
-the aircraft and mission fields covered by the currently ported Python modules;
-database-backed preprocessing also needs a local MATLAB FAST checkout so
-`+DatabasePkg/IDEAS_DB.mat` can be found through `FAST_PATH` or
-`FAST_MATLAB_PATH`.
+does not require MATLAB or `FAST-Python-Wrapper` at runtime. The repository
+includes local example input directories under `examples/`. Native runs still
+require the aircraft and mission fields covered by the currently ported Python
+modules; database-backed preprocessing also needs FAST database data to be
+available.
 
 The explicit `reference` backend is fixture-based: it matches the input against
 the bundled wrapper-validated cases (`A320`, `AEA`, `ATR42`, and `CeRAS`) and
@@ -264,29 +269,15 @@ fixture replay instead of a native Python run.
 
 ## Run A Case
 
-Run a bundled supported case with the native Python backend:
-
-```sh
-python -m fast_python.main --case A320 --output-dir outputs/A320
-```
-
-You can also use any supported wrapper example input directory:
-
-```sh
-fast-python \
-  --input-dir /path/to/FAST-Python-Wrapper/examples/A320/inputs \
-  --output-dir outputs/A320
-```
-
-Or without installing the console script:
+Run a local example input directory with the native Python backend:
 
 ```sh
 python -m fast_python.main \
-  --input-dir /path/to/FAST-Python-Wrapper/examples/A320/inputs \
+  --input-dir examples/A320/inputs \
   --output-dir outputs/A320
 ```
 
-For arbitrary aircraft and mission JSON inputs covered by the native port:
+The same shape works for custom inputs:
 
 ```sh
 python -m fast_python.main \
@@ -294,7 +285,16 @@ python -m fast_python.main \
   --output-dir outputs/native
 ```
 
-Or run a native Python preset pair directly:
+After installing the console script, the equivalent command is:
+
+```sh
+fast-python \
+  --input-dir examples/A320/inputs \
+  --output-dir outputs/A320
+```
+
+Or run a native Python preset pair directly when you want factory-generated
+inputs instead of JSON files:
 
 ```sh
 python -m fast_python.main \
@@ -307,7 +307,7 @@ To replay a saved wrapper fixture explicitly:
 ```sh
 python -m fast_python.main \
   --backend reference \
-  --case A320 \
+  --input-dir examples/A320/inputs \
   --output-dir outputs/reference-a320
 ```
 

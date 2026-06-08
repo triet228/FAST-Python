@@ -24,15 +24,14 @@ CASE_NAMES = ("A320", "AEA", "ATR42", "CeRAS")
 
 
 class ReferenceDataError(RuntimeError):
-    """Report missing or unusable FAST-Python-Wrapper reference fixtures."""
+    """Report missing or unusable local FAST reference fixtures."""
 
 
 class ReferenceCaseStore:
     """Load and match wrapper fixture cases.
 
     Inputs:
-        wrapper_path: Optional path to FAST-Python-Wrapper. If missing, common
-            local paths and FAST_PYTHON_WRAPPER_PATH are tried.
+        wrapper_path: Optional explicit path to external wrapper fixtures.
 
     Outputs:
         A store whose match() method returns saved OutputAircraft data for a
@@ -58,8 +57,9 @@ class ReferenceCaseStore:
             if archive_path.exists():
                 self.archive_path = archive_path
             else:
-                self.wrapper_path = resolve_wrapper_path()
-                self.examples_path = self.wrapper_path / "examples"
+                raise ReferenceDataError(
+                    f"Bundled reference archive not found: {archive_path}"
+                )
 
         self._cases = None
 
@@ -120,8 +120,8 @@ def run_reference(aircraft, mission, reference_path=None):
     Inputs:
         aircraft: InputAircraft-style dictionary.
         mission: Mission profile dictionary.
-        reference_path: Optional FAST-Python-Wrapper checkout path used only
-            when bundled fixture data is unavailable.
+        reference_path: Optional explicit external checkout path for reference
+            fixtures. Omit this for the repo-local bundled fixture archive.
 
     Outputs:
         Dictionary with status, mtow, aircraft, log, backend, and case keys.
@@ -168,8 +168,8 @@ def resolve_wrapper_path(wrapper_path=None):
         Path whose examples directory contains reference case fixtures.
 
     Assumptions:
-        Environment and common local paths are checked to support both CLI runs
-        and the user's known Windows project layout.
+        This helper supports explicit development and parity workflows. Normal
+        FAST-Python runs use the repo-local bundled fixture archive instead.
     """
 
     candidates = []

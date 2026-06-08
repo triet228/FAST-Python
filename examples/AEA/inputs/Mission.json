@@ -1,0 +1,60 @@
+{
+  "Target": {
+    "Valu": 926000,
+    "Type": "Dist"
+  },
+  "Segs": [
+    "Takeoff",
+    "Climb",
+    "Cruise",
+    "Descent"
+  ],
+  "ID": [
+    1,
+    1,
+    1,
+    1
+  ],
+  "AltBeg": [
+    0,
+    0,
+    7829,
+    7829
+  ],
+  "AltEnd": [
+    0,
+    7829,
+    7829,
+    0
+  ],
+  "ClbRate": [
+    "NaN",
+    "NaN",
+    "NaN",
+    "NaN"
+  ],
+  "VelBeg": [
+    0,
+    69.45000000000007,
+    0.747,
+    0.747
+  ],
+  "VelEnd": [
+    69.45000000000007,
+    0.747,
+    0.747,
+    83.34000000000009
+  ],
+  "TypeBeg": [
+    "TAS",
+    "TAS",
+    "Mach",
+    "Mach"
+  ],
+  "TypeEnd": [
+    "TAS",
+    "Mach",
+    "Mach",
+    "TAS"
+  ]
+}

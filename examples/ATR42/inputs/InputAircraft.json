@@ -1,0 +1,101 @@
+{
+  "Specs": {
+    "TLAR": {
+      "EIS": "NaN",
+      "Class": "Turboprop",
+      "MaxPax": 48
+    },
+    "Performance": {
+      "Vels": {
+        "Tko": "NaN",
+        "Crs": 0.4
+      },
+      "Alts": {
+        "Tko": "NaN",
+        "Crs": 7620
+      },
+      "Range": 1326000,
+      "RCMax": 7.493
+    },
+    "Aero": {
+      "L_D": {
+        "Clb": 10,
+        "Crs": 12,
+        "Des": "NaN"
+      },
+      "W_S": {
+        "SLS": 342
+      }
+    },
+    "Weight": {
+      "MTOW": 18600,
+      "Fuel": 4500,
+      "MLW": "NaN",
+      "Batt": "NaN",
+      "EM": "NaN",
+      "EG": "NaN"
+    },
+    "Propulsion": {
+      "PropArch": {
+        "Type": "C"
+      },
+      "T_W": {
+        "SLS": "NaN"
+      },
+      "Eta": {
+        "Prop": 0.8
+      },
+      "Engine": {
+        "Mach": 0.05,
+        "Alt": 0,
+        "OPR": 14.7,
+        "Tt4Max": 1110,
+        "ReqPower": 2051000,
+        "NPR": 1.3,
+        "NoSpools": 3,
+        "RPMs": {
+          "_matlab_row": [
+            28870,
+            33300,
+            1200
+          ]
+        },
+        "EtaPoly": {
+          "Inlet": 0.99,
+          "Diffusers": 0.99,
+          "Compressors": 0.88,
+          "Combustor": 0.995,
+          "Turbines": 0.88,
+          "Nozzles": 0.985
+        }
+      }
+    },
+    "Power": {
+      "SLS": "NaN",
+      "SpecEnergy": {
+        "Fuel": 12,
+        "Batt": 0.35
+      },
+      "Eta": {
+        "EM": 0.96,
+        "EG": 0.96
+      },
+      "P_W": {
+        "SLS": 0.1731,
+        "EM": "NaN",
+        "EG": "NaN"
+      },
+      "Battery": {
+        "SerCells": "NaN",
+        "ParCells": "NaN",
+        "BegSOC": "NaN"
+      }
+    }
+  },
+  "Settings": {
+    "Analysis": {
+      "Type": 1
+    },
+    "Plotting": 0
+  }
+}

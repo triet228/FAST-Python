@@ -57,10 +57,14 @@ def test_reference_backend_rejects_unknown_case(reference_cases):
         run_reference(aircraft, mission)
 
 
-def test_cli_main_runs_bundled_case(tmp_path):
-    """Check that a bundled case can run without wrapper input files."""
+def test_cli_main_runs_local_example_input_dir(tmp_path):
+    """Check that a local example input directory can run the reference backend."""
 
-    result = main(OUTPUT_DIR=tmp_path, case="A320", backend="reference")
+    result = main(
+        INPUT_DIR="examples/A320/inputs",
+        OUTPUT_DIR=tmp_path,
+        backend="reference",
+    )
 
     assert result["status"] == "success"
     assert result["case"] == "A320"

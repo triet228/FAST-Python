@@ -34,8 +34,8 @@ def main(
     Inputs:
         INPUT_DIR: Directory containing InputAircraft.json and Mission.json.
         OUTPUT_DIR: Directory where generated output files are written.
-        reference_path: Optional FAST-Python-Wrapper checkout path for parity
-            fixture data used only by the reference backend.
+        reference_path: Optional explicit external fixture path used only by
+            the reference backend. Omit this for repo-local bundled fixtures.
         case: Optional bundled aircraft/mission case name, such as A320.
         backend: "native" for the ported Python pipeline or "reference" for
             explicit saved-fixture replay.
@@ -91,7 +91,7 @@ def cli():
         "--case",
         choices=CASE_NAMES,
         default=None,
-        help="Run a bundled aircraft/mission case instead of reading --input-dir.",
+        help=argparse.SUPPRESS,
     )
     parser.add_argument(
         "--native-case",
@@ -107,7 +107,7 @@ def cli():
     parser.add_argument(
         "--wrapper-path",
         default=None,
-        help="FAST-Python-Wrapper checkout path for --backend reference fixtures.",
+        help=argparse.SUPPRESS,
     )
     parser.add_argument(
         "--backend",
