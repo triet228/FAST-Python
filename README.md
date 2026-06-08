@@ -1,9 +1,10 @@
 # FAST Python
 
+> [!IMPORTANT]
+> **Maintenance Disclaimer:** This repository is fully maintained by Codex.
+
 Python implementation layer for **Future Aircraft Sizing Tool (FAST)** by The
 IDEAS Lab in the Aerospace Engineering Department at the University of Michigan.
-
-Disclaimer: This repository is fully maintained by Codex.
 
 This repository is the Python-side home for converting the MATLAB FAST project
 into Python. The current package provides:
