@@ -242,6 +242,33 @@ unless `FAST_PYTHON_RUN_MATLAB_PARITY=1`.
 MATLAB lacks Aerospace Toolbox `convlength`; the native Python constants remain
 covered by the ordinary profile tests.
 
+To verify end-to-end `OutputAircraft` parity for the native aircraft/profile
+case matrix:
+
+```sh
+FAST_PYTHON_RUN_MATLAB_PARITY=1 \
+FAST_PYTHON_WRAPPER_PATH=/path/to/FAST-Python-Wrapper \
+FAST_PATH=/path/to/FAST \
+python -m pytest -q tests/test_matlab_output_aircraft_parity.py
+```
+
+PowerShell equivalent:
+
+```powershell
+$env:FAST_PYTHON_RUN_MATLAB_PARITY="1"
+$env:FAST_PYTHON_WRAPPER_PATH="C:\path\to\FAST-Python-Wrapper"
+$env:FAST_PATH="C:\path\to\FAST"
+python -m pytest -q tests\test_matlab_output_aircraft_parity.py
+```
+
+For a single expensive case while debugging, set
+`FAST_PYTHON_OUTPUT_PARITY_CASES`, for example:
+
+```powershell
+$env:FAST_PYTHON_OUTPUT_PARITY_CASES="A320"
+python -m pytest -q tests\test_matlab_output_aircraft_parity.py
+```
+
 ## Input Expectations
 
 FAST Python uses the same input file contract as `FAST-Python-Wrapper`:
