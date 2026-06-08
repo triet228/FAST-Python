@@ -274,40 +274,6 @@ python -m fast_python.main \
   --output-dir examples/A320/outputs
 ```
 
-The same shape works for custom inputs:
-
-```sh
-python -m fast_python.main \
-  --input-dir inputs \
-  --output-dir outputs/native
-```
-
-After installing the console script, the equivalent command is:
-
-```sh
-fast-python \
-  --input-dir examples/A320/inputs \
-  --output-dir examples/A320/outputs
-```
-
-Or run a native Python preset pair directly when you want factory-generated
-inputs instead of JSON files:
-
-```sh
-python -m fast_python.main \
-  --native-case A320 \
-  --output-dir outputs/native-a320
-```
-
-To replay a saved wrapper fixture explicitly:
-
-```sh
-python -m fast_python.main \
-  --backend reference \
-  --input-dir examples/A320/inputs \
-  --output-dir examples/A320/outputs
-```
-
 Generated files:
 
 - `examples/A320/outputs/OutputAircraft.json`
