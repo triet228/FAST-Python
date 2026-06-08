@@ -207,8 +207,8 @@ cd C:\Users\homin\Projects\FAST-Python-Wrapper
 C:\Users\homin\.conda\envs\FAST\python.exe -m pytest -q
 ```
 
-To run the optional direct MATLAB parity checks for the AircraftSpecsPkg and
-MissionSegsPkg Python ports:
+To run the optional direct MATLAB parity checks for the AircraftSpecsPkg,
+MissionProfilesPkg, and MissionSegsPkg Python ports:
 
 ```powershell
 $env:FAST_PYTHON_RUN_MATLAB_PARITY="1"
@@ -216,11 +216,15 @@ $env:FAST_PYTHON_WRAPPER_PATH="C:\Users\homin\Projects\FAST-Python-Wrapper"
 $env:FAST_PATH="C:\Users\homin\Projects\FAST"
 C:\Users\homin\.conda\envs\FAST\python.exe -m pytest -q `
   tests\test_matlab_aircraft_specs_parity.py `
+  tests\test_matlab_mission_profiles_parity.py `
   tests\test_matlab_mission_segs_parity.py
 ```
 
 These parity tests start MATLAB through `FAST-Python-Wrapper` and are skipped
 unless `FAST_PYTHON_RUN_MATLAB_PARITY=1`.
+`MissionProfilesPkg.TakeoffTestProfile` is marked as an expected failure when
+MATLAB lacks Aerospace Toolbox `convlength`; the native Python constants remain
+covered by the ordinary profile tests.
 
 ## Run A Case
 
