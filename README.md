@@ -150,6 +150,7 @@ tests/
   test_history.py
   test_io.py
   test_matlab_aircraft_specs_parity.py
+  test_matlab_engine_specs_parity.py
   test_matlab_mission_profiles_parity.py
   test_matlab_mission_segs_parity.py
   test_matlab_output_aircraft_parity.py
@@ -218,7 +219,8 @@ python -m pytest -q
 ```
 
 To run the optional direct MATLAB parity checks for the AircraftSpecsPkg,
-MissionProfilesPkg, and MissionSegsPkg Python ports:
+EngineModelPkg.EngineSpecsPkg, MissionProfilesPkg, and MissionSegsPkg Python
+ports:
 
 ```sh
 FAST_PYTHON_RUN_MATLAB_PARITY=1 \
@@ -226,6 +228,7 @@ FAST_PYTHON_WRAPPER_PATH=/path/to/FAST-Python-Wrapper \
 FAST_PATH=/path/to/FAST \
 python -m pytest -q \
   tests/test_matlab_aircraft_specs_parity.py \
+  tests/test_matlab_engine_specs_parity.py \
   tests/test_matlab_mission_profiles_parity.py \
   tests/test_matlab_mission_segs_parity.py
 ```
@@ -238,6 +241,7 @@ $env:FAST_PYTHON_WRAPPER_PATH="C:\path\to\FAST-Python-Wrapper"
 $env:FAST_PATH="C:\path\to\FAST"
 python -m pytest -q `
   tests\test_matlab_aircraft_specs_parity.py `
+  tests\test_matlab_engine_specs_parity.py `
   tests\test_matlab_mission_profiles_parity.py `
   tests\test_matlab_mission_segs_parity.py
 ```
