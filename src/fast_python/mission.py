@@ -262,7 +262,7 @@ def eval_takeoff(aircraft):
     assign_history_vector(history["Power"], "Req", preq, seg_beg, seg_end)
     assign_history_vector(history["Weight"], "CurWeight", mass, seg_beg, seg_end)
     assign_history_matrix(history["Energy"], "Eleft_ES", eleft_es, seg_beg, seg_end)
-    aircraft = prop_analysis(aircraft)
+    aircraft = prop_analysis(aircraft, copy_aircraft=False)
     history = aircraft["Mission"]["History"]["SI"]
     assign_history_vector(history["Performance"], "Dist", dist, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "EAS", eas, seg_beg, seg_end)
@@ -383,7 +383,7 @@ def eval_detailed_takeoff(aircraft):
     assign_history_vector(history["Performance"], "Time", time, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Mach", mach, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Alt", alt, seg_beg, seg_end)
-    aircraft = prop_analysis(aircraft)
+    aircraft = prop_analysis(aircraft, copy_aircraft=False)
     history = aircraft["Mission"]["History"]["SI"]
     assign_history_vector(history["Performance"], "Dist", dist, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "EAS", eas, seg_beg, seg_end)
@@ -485,7 +485,7 @@ def eval_landing(aircraft):
     assign_history_vector(history["Performance"], "Time", time, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Mach", mach, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Alt", alt, seg_beg, seg_end)
-    aircraft = prop_analysis(aircraft)
+    aircraft = prop_analysis(aircraft, copy_aircraft=False)
     history = aircraft["Mission"]["History"]["SI"]
     assign_history_vector(history["Performance"], "Dist", dist, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "EAS", eas, seg_beg, seg_end)
@@ -621,7 +621,7 @@ def eval_cruise(aircraft):
         assign_history_vector(history["Power"], "Req", preq, seg_beg, seg_end)
         assign_history_vector(history["Weight"], "CurWeight", mass, seg_beg, seg_end)
         assign_history_vector(history["Performance"], "Time", time, seg_beg, seg_end)
-        aircraft = prop_analysis(aircraft)
+        aircraft = prop_analysis(aircraft, copy_aircraft=False)
         history = aircraft["Mission"]["History"]["SI"]
         mass = np.asarray(history["Weight"]["CurWeight"][seg_beg:seg_end], dtype=float)
         mass_check = np.abs(mass - mass_old) / mass_old
@@ -1397,7 +1397,7 @@ def eval_climb(aircraft):
         assign_history_vector(history["Power"], "Req", preq, seg_beg, seg_end)
         assign_history_vector(history["Weight"], "CurWeight", mass, seg_beg, seg_end)
         assign_history_vector(history["Performance"], "Time", time, seg_beg, seg_end)
-        aircraft = prop_analysis(aircraft)
+        aircraft = prop_analysis(aircraft, copy_aircraft=False)
         history = aircraft["Mission"]["History"]["SI"]
         mass = np.asarray(history["Weight"]["CurWeight"][seg_beg:seg_end], dtype=float)
 
@@ -1577,7 +1577,7 @@ def eval_descent(aircraft):
         assign_history_vector(history["Power"], "Req", preq, seg_beg, seg_end)
         assign_history_vector(history["Weight"], "CurWeight", mass, seg_beg, seg_end)
         assign_history_vector(history["Performance"], "Time", time, seg_beg, seg_end)
-        aircraft = prop_analysis(aircraft)
+        aircraft = prop_analysis(aircraft, copy_aircraft=False)
         history = aircraft["Mission"]["History"]["SI"]
         mass = np.asarray(history["Weight"]["CurWeight"][seg_beg:seg_end], dtype=float)
 

@@ -2,6 +2,8 @@
 
 """Tests for native PropulsionPkg ports."""
 
+from copy import deepcopy
+
 import numpy as np
 
 from fast_python.engine import turboprop_nonlinear_sizing
@@ -675,6 +677,32 @@ def test_prop_analysis_records_detailed_battery_histories():
     )
     assert_array_close(history["Energy"]["E_ES"], [[0], [1000], [2000]])
     assert_array_close(history["Energy"]["Eleft_ES"], [[10000], [9000], [8000]])
+
+
+def test_prop_analysis_default_does_not_mutate_input():
+    """Check public PropAnalysis keeps its no-mutation contract."""
+
+    aircraft = power_available(make_turbofan_prop_analysis_aircraft())
+    original_fburn = deepcopy(aircraft["Mission"]["History"]["SI"]["Weight"]["Fburn"])
+    result = prop_analysis(aircraft)
+
+    assert "Preq" not in aircraft["Mission"]["History"]["SI"]["Power"]
+    assert aircraft["Mission"]["History"]["SI"]["Weight"]["Fburn"] == original_fburn
+    assert "Preq" in result["Mission"]["History"]["SI"]["Power"]
+
+
+def test_prop_analysis_internal_mode_mutates_segment_aircraft():
+    """Check mission evaluators can reuse their already-copied aircraft."""
+
+    aircraft = power_available(make_turbofan_prop_analysis_aircraft())
+    result = prop_analysis(aircraft, copy_aircraft=False)
+
+    assert result is aircraft
+    assert "Preq" in aircraft["Mission"]["History"]["SI"]["Power"]
+    assert_array_close(
+        aircraft["Mission"]["History"]["SI"]["Weight"]["Fburn"],
+        [0, 0.5],
+    )
 
 
 def test_prop_analysis_uses_simple_turbofan_fuel_model():

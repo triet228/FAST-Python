@@ -1058,16 +1058,19 @@ def recompute_splits(aircraft, seg_beg, seg_end):
     return aircraft
 
 
-def prop_analysis(aircraft):
+def prop_analysis(aircraft, copy_aircraft=True):
     """Analyze propulsion power flow over the active mission segment.
 
     Inputs:
         aircraft: Dictionary with mission history, propulsion architecture, and
             active Mission.Profile.SegsID/MissID fields.
+        copy_aircraft: True preserves the public no-mutation behavior. Internal
+            mission evaluators pass False after they have already copied the
+            segment aircraft.
 
     Outputs:
-        A deep-copied aircraft dictionary with component power, thrust, energy,
-        SOC, fuel-burn, and mass histories updated over the active segment.
+        Aircraft dictionary with component power, thrust, energy, SOC,
+        fuel-burn, and mass histories updated over the active segment.
 
     Assumptions:
         This ports PropulsionPkg.PropAnalysis's matrix power bookkeeping,
@@ -1076,7 +1079,8 @@ def prop_analysis(aircraft):
         fuel-flow path.
     """
 
-    aircraft = deepcopy(aircraft)
+    if copy_aircraft:
+        aircraft = deepcopy(aircraft)
     specs = aircraft["Specs"]
     prop = specs["Propulsion"]
     prop_arch = prop["PropArch"]
