@@ -44,6 +44,27 @@ def test_eval_takeoff_fills_trajectory_and_electric_energy():
     assert result["Mission"]["History"]["Segment"] == ["Takeoff", "Takeoff", "Takeoff"]
 
 
+def test_eval_takeoff_default_does_not_mutate_input():
+    """Check public EvalTakeoff keeps its no-mutation contract."""
+
+    aircraft = init_mission_history(make_takeoff_aircraft())
+    result = eval_takeoff(aircraft)
+
+    assert aircraft["Mission"]["History"]["Segment"] == ["", "", ""]
+    assert aircraft["Mission"]["History"]["SI"]["Power"]["TV"] == [0.0, 0.0, 0.0]
+    assert result["Mission"]["History"]["Segment"] == ["Takeoff", "Takeoff", "Takeoff"]
+
+
+def test_eval_takeoff_internal_mode_mutates_segment_aircraft():
+    """Check FlyMission can reuse its already-copied aircraft."""
+
+    aircraft = init_mission_history(make_takeoff_aircraft())
+    result = eval_takeoff(aircraft, copy_aircraft=False)
+
+    assert result is aircraft
+    assert aircraft["Mission"]["History"]["Segment"] == ["Takeoff", "Takeoff", "Takeoff"]
+
+
 def test_eval_detailed_takeoff_computes_acceleration_limited_roll():
     """Check EvalDetailedTakeoff uses available power for roll physics."""
 

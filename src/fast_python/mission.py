@@ -190,16 +190,19 @@ def process_profile(aircraft):
     return aircraft
 
 
-def eval_takeoff(aircraft):
+def eval_takeoff(aircraft, copy_aircraft=True):
     """Evaluate a takeoff mission segment.
 
     Inputs:
         aircraft: Dictionary with processed mission history and an active
             Mission.Profile.SegsID.
+        copy_aircraft: True preserves the public no-mutation behavior. Internal
+            mission loops pass False after they have already copied the
+            aircraft.
 
     Outputs:
-        A deep-copied aircraft dictionary with takeoff trajectory, energy, and
-        propulsion histories populated.
+        Aircraft dictionary with takeoff trajectory, energy, and propulsion
+        histories populated.
 
     Assumptions:
         This follows MissionSegsPkg.EvalTakeoff: one minute, constant
@@ -207,7 +210,8 @@ def eval_takeoff(aircraft):
         roll.
     """
 
-    aircraft = deepcopy(aircraft)
+    if copy_aircraft:
+        aircraft = deepcopy(aircraft)
     specs = aircraft["Specs"]
     profile = aircraft["Mission"]["Profile"]
     history = aircraft["Mission"]["History"]["SI"]
@@ -254,8 +258,8 @@ def eval_takeoff(aircraft):
     assign_history_vector(history["Performance"], "Time", time, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Mach", mach, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Alt", alt, seg_beg, seg_end)
-    aircraft = power_available(aircraft)
-    aircraft = recompute_splits(aircraft, seg_beg + 1, seg_end)
+    aircraft = power_available(aircraft, copy_aircraft=False)
+    aircraft = recompute_splits(aircraft, seg_beg + 1, seg_end, copy_aircraft=False)
     history = aircraft["Mission"]["History"]["SI"]
     preq = np.ones(npoint) * np.inf
     ps = np.zeros(npoint)
@@ -278,16 +282,19 @@ def eval_takeoff(aircraft):
     return aircraft
 
 
-def eval_detailed_takeoff(aircraft):
+def eval_detailed_takeoff(aircraft, copy_aircraft=True):
     """Evaluate a physics-based takeoff mission segment.
 
     Inputs:
         aircraft: Dictionary with processed mission history, wing loading, and
             active Mission.Profile.SegsID.
+        copy_aircraft: True preserves the public no-mutation behavior. Internal
+            mission loops pass False after they have already copied the
+            aircraft.
 
     Outputs:
-        A deep-copied aircraft dictionary with detailed takeoff trajectory,
-        aerodynamic state, and propulsion histories populated.
+        Aircraft dictionary with detailed takeoff trajectory, aerodynamic
+        state, and propulsion histories populated.
 
     Assumptions:
         This follows MissionSegsPkg.EvalDetailedTakeoff. It keeps FAST's
@@ -295,7 +302,8 @@ def eval_detailed_takeoff(aircraft):
         available thrust rather than prescribing a one-minute ground roll.
     """
 
-    aircraft = deepcopy(aircraft)
+    if copy_aircraft:
+        aircraft = deepcopy(aircraft)
     specs = aircraft["Specs"]
     profile = aircraft["Mission"]["Profile"]
     history = aircraft["Mission"]["History"]["SI"]
@@ -348,7 +356,7 @@ def eval_detailed_takeoff(aircraft):
     acceleration = np.zeros(npoint)
     dtime = np.zeros(npoint)
     ddist = np.zeros(npoint)
-    aircraft = power_available(aircraft)
+    aircraft = power_available(aircraft, copy_aircraft=False)
     history = aircraft["Mission"]["History"]["SI"]
     pav = np.asarray(history["Power"]["TV"][seg_beg:seg_end], dtype=float)
 
@@ -400,16 +408,19 @@ def eval_detailed_takeoff(aircraft):
     return aircraft
 
 
-def eval_landing(aircraft):
+def eval_landing(aircraft, copy_aircraft=True):
     """Evaluate a landing mission segment.
 
     Inputs:
         aircraft: Dictionary with processed mission history and active
             Mission.Profile.SegsID.
+        copy_aircraft: True preserves the public no-mutation behavior. Internal
+            mission loops pass False after they have already copied the
+            aircraft.
 
     Outputs:
-        A deep-copied aircraft dictionary with landing trajectory, energy, and
-        propulsion histories populated.
+        Aircraft dictionary with landing trajectory, energy, and propulsion
+        histories populated.
 
     Assumptions:
         This follows MissionSegsPkg.EvalLanding: 30 seconds, two control
@@ -417,7 +428,8 @@ def eval_landing(aircraft):
         reverse-thrust demand.
     """
 
-    aircraft = deepcopy(aircraft)
+    if copy_aircraft:
+        aircraft = deepcopy(aircraft)
     specs = aircraft["Specs"]
     profile = aircraft["Mission"]["Profile"]
     history = aircraft["Mission"]["History"]["SI"]
@@ -474,7 +486,7 @@ def eval_landing(aircraft):
     assign_history_vector(history["Performance"], "Rho", np.ones(npoint) * rho_land, seg_beg, seg_end)
     assign_history_vector(history["Weight"], "CurWeight", mass, seg_beg, seg_end)
     assign_history_matrix(history["Energy"], "Eleft_ES", eleft_es, seg_beg, seg_end)
-    aircraft = power_available(aircraft)
+    aircraft = power_available(aircraft, copy_aircraft=False)
     history = aircraft["Mission"]["History"]["SI"]
     pav = np.asarray(history["Power"]["TV"][seg_beg:seg_end], dtype=float)
     preq = 0.3 * pav
@@ -501,16 +513,19 @@ def eval_landing(aircraft):
     return aircraft
 
 
-def eval_cruise(aircraft):
+def eval_cruise(aircraft, copy_aircraft=True):
     """Evaluate a cruise mission segment.
 
     Inputs:
         aircraft: Dictionary with processed mission history and active
             Mission.Profile.SegsID/CrsTarget fields.
+        copy_aircraft: True preserves the public no-mutation behavior. Internal
+            mission loops pass False after they have already copied the
+            aircraft.
 
     Outputs:
-        A deep-copied aircraft dictionary with cruise trajectory, power
-        required, and energy histories populated.
+        Aircraft dictionary with cruise trajectory, power required, and energy
+        histories populated.
 
     Assumptions:
         This follows MissionSegsPkg.EvalCruise. Mass iteration converges after
@@ -518,7 +533,8 @@ def eval_cruise(aircraft):
         PropAnalysis, all-electric cases converge in one pass.
     """
 
-    aircraft = deepcopy(aircraft)
+    if copy_aircraft:
+        aircraft = deepcopy(aircraft)
     specs = aircraft["Specs"]
     profile = aircraft["Mission"]["Profile"]
     history = aircraft["Mission"]["History"]["SI"]
@@ -603,7 +619,7 @@ def eval_cruise(aircraft):
     assign_history_vector(history["Performance"], "Rho", rho, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Mach", mach, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Alt", alt, seg_beg, seg_end)
-    aircraft = power_available(aircraft)
+    aircraft = power_available(aircraft, copy_aircraft=False)
     history = aircraft["Mission"]["History"]["SI"]
     pav = np.asarray(history["Power"]["TV"][seg_beg:seg_end], dtype=float)
 
@@ -645,16 +661,19 @@ def eval_cruise(aircraft):
     return aircraft
 
 
-def eval_cruise_breguet(aircraft):
+def eval_cruise_breguet(aircraft, copy_aircraft=True):
     """Evaluate FAST's Breguet-equation cruise segment.
 
     Inputs:
         aircraft: Dictionary with processed mission history and an active
             CruiseBRE segment.
+        copy_aircraft: True preserves the public no-mutation behavior. Internal
+            mission loops pass False after they have already copied the
+            aircraft.
 
     Outputs:
-        A deep-copied aircraft dictionary with Breguet cruise trajectory,
-        fuel/battery energy, mass, and aggregate power histories populated.
+        Aircraft dictionary with Breguet cruise trajectory, fuel/battery
+        energy, mass, and aggregate power histories populated.
 
     Assumptions:
         This ports the active range-to-final-weight branch of
@@ -662,7 +681,8 @@ def eval_cruise_breguet(aircraft):
         range from a prescribed landing weight remains intentionally omitted.
     """
 
-    aircraft = deepcopy(aircraft)
+    if copy_aircraft:
+        aircraft = deepcopy(aircraft)
     specs = aircraft["Specs"]
     profile = aircraft["Mission"]["Profile"]
     history = aircraft["Mission"]["History"]["SI"]
@@ -1240,16 +1260,19 @@ def is_finite_number(value):
         return False
 
 
-def eval_climb(aircraft):
+def eval_climb(aircraft, copy_aircraft=True):
     """Evaluate a climb mission segment.
 
     Inputs:
         aircraft: Dictionary with processed mission history and active
             Mission.Profile.SegsID.
+        copy_aircraft: True preserves the public no-mutation behavior. Internal
+            mission loops pass False after they have already copied the
+            aircraft.
 
     Outputs:
-        A deep-copied aircraft dictionary with climb trajectory, power
-        required, and energy histories populated.
+        Aircraft dictionary with climb trajectory, power required, and energy
+        histories populated.
 
     Assumptions:
         This follows MissionSegsPkg.EvalClimb. When a climb rate is not
@@ -1258,7 +1281,8 @@ def eval_climb(aircraft):
         balance used in FAST.
     """
 
-    aircraft = deepcopy(aircraft)
+    if copy_aircraft:
+        aircraft = deepcopy(aircraft)
     specs = aircraft["Specs"]
     profile = aircraft["Mission"]["Profile"]
     history = aircraft["Mission"]["History"]["SI"]
@@ -1352,8 +1376,8 @@ def eval_climb(aircraft):
         assign_history_vector(history["Performance"], "Rho", rho, seg_beg, seg_end)
         assign_history_vector(history["Performance"], "Mach", mach, seg_beg, seg_end)
         assign_history_vector(history["Performance"], "Alt", alt, seg_beg, seg_end)
-        aircraft = power_available(aircraft)
-        aircraft = recompute_splits(aircraft, seg_beg + 1, seg_end)
+        aircraft = power_available(aircraft, copy_aircraft=False)
+        aircraft = recompute_splits(aircraft, seg_beg + 1, seg_end, copy_aircraft=False)
         history = aircraft["Mission"]["History"]["SI"]
         pav = np.asarray(history["Power"]["TV"][seg_beg:seg_end], dtype=float)
 
@@ -1429,16 +1453,19 @@ def eval_climb(aircraft):
     return aircraft
 
 
-def eval_descent(aircraft):
+def eval_descent(aircraft, copy_aircraft=True):
     """Evaluate a descent mission segment.
 
     Inputs:
         aircraft: Dictionary with processed mission history and active
             Mission.Profile.SegsID.
+        copy_aircraft: True preserves the public no-mutation behavior. Internal
+            mission loops pass False after they have already copied the
+            aircraft.
 
     Outputs:
-        A deep-copied aircraft dictionary with descent trajectory, power
-        required, and energy histories populated.
+        Aircraft dictionary with descent trajectory, power required, and energy
+        histories populated.
 
     Assumptions:
         This follows MissionSegsPkg.EvalDescent. Negative power required is
@@ -1446,7 +1473,8 @@ def eval_descent(aircraft):
         bookkeeping.
     """
 
-    aircraft = deepcopy(aircraft)
+    if copy_aircraft:
+        aircraft = deepcopy(aircraft)
     specs = aircraft["Specs"]
     profile = aircraft["Mission"]["Profile"]
     history = aircraft["Mission"]["History"]["SI"]
@@ -1532,7 +1560,7 @@ def eval_descent(aircraft):
         assign_history_vector(history["Performance"], "Rho", rho, seg_beg, seg_end)
         assign_history_vector(history["Performance"], "Mach", mach, seg_beg, seg_end)
         assign_history_vector(history["Performance"], "Alt", alt, seg_beg, seg_end)
-        aircraft = power_available(aircraft)
+        aircraft = power_available(aircraft, copy_aircraft=False)
         history = aircraft["Mission"]["History"]["SI"]
         pav = np.asarray(history["Power"]["TV"][seg_beg:seg_end], dtype=float)
 
@@ -1695,7 +1723,7 @@ def fly_mission(aircraft):
                 segment_name = mission["Segs"][iseg]
                 seg_end = mission["SegEnd"][iseg]
                 evaluator = mission_segment_evaluator(segment_name)
-                aircraft = evaluator(aircraft)
+                aircraft = evaluator(aircraft, copy_aircraft=False)
 
                 if iteration < 1 and icrs is not None and iseg < icrs:
                     ielem = seg_end + 1

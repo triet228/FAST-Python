@@ -790,16 +790,19 @@ def engine_lapse(sls, aircraft_class, rho):
     return restore_scalar_or_list(result)
 
 
-def power_available(aircraft):
+def power_available(aircraft, copy_aircraft=True):
     """Compute available thrust power for a mission segment.
 
     Inputs:
         aircraft: Dictionary containing a mission segment, mission history, and
             propulsion architecture fields.
+        copy_aircraft: True preserves the public no-mutation behavior. Internal
+            mission evaluators pass False after they have already copied the
+            segment aircraft.
 
     Outputs:
-        The same aircraft dictionary with Power.Pav, Power.Tav, and Power.TV
-        populated over the active segment.
+        Aircraft dictionary with Power.Pav, Power.Tav, and Power.TV populated
+        over the active segment.
 
     Assumptions:
         This ports the matrix propagation behavior of PropulsionPkg.PowerAvailable
@@ -807,7 +810,8 @@ def power_available(aircraft):
         density-ratio model as FAST EngineLapse.
     """
 
-    aircraft = deepcopy(aircraft)
+    if copy_aircraft:
+        aircraft = deepcopy(aircraft)
     profile = aircraft["Mission"]["Profile"]
     seg_id = int(profile["SegsID"]) - 1
     seg_beg = int(profile["SegBeg"][seg_id]) - 1
@@ -989,23 +993,27 @@ def propulsion_sizing(aircraft):
     return aircraft
 
 
-def recompute_splits(aircraft, seg_beg, seg_end):
+def recompute_splits(aircraft, seg_beg, seg_end, copy_aircraft=True):
     """Recompute downstream splits for full-throttle parallel connections.
 
     Inputs:
         aircraft: Dictionary with PropArch.ParConns and mission power history.
         seg_beg: One-based beginning mission-history row.
         seg_end: One-based ending mission-history row.
+        copy_aircraft: True preserves the public no-mutation behavior. Internal
+            mission evaluators pass False after they have already copied the
+            segment aircraft.
 
     Outputs:
-        A deep-copied aircraft dictionary with Power.LamDwn updated.
+        Aircraft dictionary with Power.LamDwn updated.
 
     Assumptions:
         The Python ParConns convention stores zero-based component indices for
         the supplemental transmitter, matching prop_arch_connections().
     """
 
-    aircraft = deepcopy(aircraft)
+    if copy_aircraft:
+        aircraft = deepcopy(aircraft)
     prop_arch = aircraft["Specs"]["Propulsion"]["PropArch"]
     parallel = [
         index
@@ -1556,7 +1564,13 @@ def engine_weights_for_sizing(aircraft, aircraft_class, engines, pdwn, tdwn, psu
     if aircraft_class.lower() == "turbofan":
         data = aircraft["HistData"]["Eng"]
         target = tdwn[:-1][engines].reshape(-1, 1)
-        weights, _ = nlgpr(data, [["Thrust_Max"], ["DryWeight"]], target)
+        preprocessing = aircraft.get("RegressionParams", {}).get("WEngine")
+        weights, _ = nlgpr(
+            data,
+            [["Thrust_Max"], ["DryWeight"]],
+            target,
+            preprocessing=preprocessing,
+        )
         first_engine = np.where(engines)[0][0]
         prop["Engine"]["Alt"] = 0
         prop["Engine"]["Mach"] = 0.05

@@ -436,6 +436,26 @@ def test_power_available_matches_fast_parallel_hybrid_cases():
     assert_array_close(tv_off, [82, 82])
 
 
+def test_power_available_default_does_not_mutate_input():
+    """Check public PowerAvailable keeps its no-mutation contract."""
+
+    aircraft = make_power_available_aircraft()
+    result = power_available(aircraft)
+
+    assert aircraft["Mission"]["History"]["SI"]["Power"]["TV"] == [0, 0]
+    assert_array_close(result["Mission"]["History"]["SI"]["Power"]["TV"], [100, 100])
+
+
+def test_power_available_internal_mode_mutates_segment_aircraft():
+    """Check mission evaluators can reuse their already-copied aircraft."""
+
+    aircraft = make_power_available_aircraft()
+    result = power_available(aircraft, copy_aircraft=False)
+
+    assert result is aircraft
+    assert_array_close(aircraft["Mission"]["History"]["SI"]["Power"]["TV"], [100, 100])
+
+
 def test_propulsion_sizing_electric_turboprop_weights():
     """Check electric PropulsionSizing power split and motor weight."""
 
@@ -503,10 +523,65 @@ def test_propulsion_sizing_conventional_turbofan_sizes_engine_cycle():
     assert prop["SizedEngine"]["Specs"]["Sizing"] == 0
 
 
+def test_propulsion_sizing_uses_precomputed_engine_regression(monkeypatch):
+    """Check PropulsionSizing reuses SpecProcessing's engine regression setup."""
+
+    aircraft = make_turbofan_propulsion_sizing_aircraft()
+    aircraft["RegressionParams"] = {
+        "WEngine": {
+            "DataMatrix": np.asarray([[1.0, 2.0]]),
+            "HyperParams": np.asarray([1.0, 1.0]),
+            "InverseTerm": np.asarray([[1.0]]),
+        }
+    }
+    seen = {}
+
+    def fake_nlgpr(data, io_space, target, weights=None, prior=None, preprocessing=None):
+        seen["preprocessing"] = preprocessing
+        return np.asarray([123.0]), np.asarray([0.0])
+
+    monkeypatch.setattr("fast_python.propulsion.nlgpr", fake_nlgpr)
+    result = propulsion_sizing(create_prop_arch(aircraft))
+
+    assert seen["preprocessing"] is not None
+    assert seen["preprocessing"]["InverseTerm"][0, 0] == 1.0
+    assert result["Specs"]["Weight"]["Engines"] == 123.0
+
+
 def test_recompute_splits_updates_parallel_downstream_split():
     """Check full-throttle split recomputation for a parallel motor."""
 
-    aircraft = {
+    aircraft = make_recompute_splits_aircraft()
+
+    result = recompute_splits(aircraft, 1, 2)
+
+    assert_array_close(result["Mission"]["History"]["SI"]["Power"]["LamDwn"], [[0.2], [0.5]])
+
+
+def test_recompute_splits_default_does_not_mutate_input():
+    """Check public RecomputeSplits keeps its no-mutation contract."""
+
+    aircraft = make_recompute_splits_aircraft()
+    result = recompute_splits(aircraft, 1, 2)
+
+    assert aircraft["Mission"]["History"]["SI"]["Power"]["LamDwn"] == [[0], [0]]
+    assert_array_close(result["Mission"]["History"]["SI"]["Power"]["LamDwn"], [[0.2], [0.5]])
+
+
+def test_recompute_splits_internal_mode_mutates_segment_aircraft():
+    """Check mission evaluators can reuse their already-copied aircraft."""
+
+    aircraft = make_recompute_splits_aircraft()
+    result = recompute_splits(aircraft, 1, 2, copy_aircraft=False)
+
+    assert result is aircraft
+    assert_array_close(aircraft["Mission"]["History"]["SI"]["Power"]["LamDwn"], [[0.2], [0.5]])
+
+
+def make_recompute_splits_aircraft():
+    """Return a small parallel-hybrid aircraft for RecomputeSplits."""
+
+    return {
         "Settings": {
             "nargOperDwn": 1,
         },
@@ -546,10 +621,6 @@ def test_recompute_splits_updates_parallel_downstream_split():
             }
         },
     }
-
-    result = recompute_splits(aircraft, 1, 2)
-
-    assert_array_close(result["Mission"]["History"]["SI"]["Power"]["LamDwn"], [[0.2], [0.5]])
 
 
 def test_prop_analysis_tracks_electric_power_and_energy():
