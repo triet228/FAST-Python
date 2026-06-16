@@ -165,11 +165,15 @@ def test_a320neo_aircraft_matches_representative_matlab_values():
     assert abs(specs["Performance"]["Vels"]["Tko"] - convert_velocity(135, "kts", "m/s")) < 1.0e-12
     assert specs["Performance"]["Range"] == 4815e3
     assert specs["Aero"]["L_D"]["Crs"] == 18.23
+    assert specs["Aero"]["Wing"]["S"] == 126.5
     assert specs["Weight"]["MTOW"] == 79000
+    assert specs["Weight"]["WairfCF"] == 0.993
     assert specs["Propulsion"]["Engine"]["OPR"] == 50
+    assert specs["Propulsion"]["MDotCF"] == 1.092
     assert specs["Propulsion"]["Thrust"]["SLS"] == 2.37e5
-    assert specs["Power"]["LamUps"]["Crs"] == 0
-    assert aircraft["Settings"]["TkoPoints"] == 4
+    assert specs["Power"]["LamUps"]["Crs"] == []
+    assert specs["Power"]["Windmill"]["Tko"] == 0
+    assert aircraft["Settings"]["TkoPoints"] == 10
     assert aircraft["Settings"]["VisualizeAircraft"] == 0
 
 
@@ -275,13 +279,17 @@ def test_erj175lr_aircraft_matches_matlab_conventional_values():
 
     assert specs["TLAR"]["EIS"] == 2005
     assert specs["TLAR"]["MaxPax"] == 78
-    assert specs["Aero"]["L_D"]["Clb"] == 10.9773 * 1.002
+    assert specs["Aero"]["L_D"]["Clb"] == 10.9773
+    assert specs["Aero"]["Wing"]["S"] == 79.8322
     assert specs["Propulsion"]["PropArch"]["Type"] == "C"
-    assert specs["Propulsion"]["MDotCF"] == 1.029
+    assert specs["Propulsion"]["MDotCF"] == 1.050
     assert specs["Performance"]["Range"] == convert_length(2150, "naut mi", "m")
     assert specs["Weight"]["MTOW"] == convert_mass(85517, "lbm", "kg")
+    assert specs["Weight"]["WairfCF"] == 1.016
     assert specs["Weight"]["Fuel"] == convert_mass(20785, "lbm", "kg")
-    assert specs["Power"]["LamDwn"]["SLS"] == 0
+    assert specs["Power"]["LamDwn"]["SLS"] == []
+    assert specs["Power"]["Windmill"]["Tko"] == 0
+    assert specs["Battery"]["BegSOC"] == 100
     assert np.isnan(specs["Power"]["SpecEnergy"]["Batt"])
     assert aircraft["Settings"]["Analysis"]["MaxIter"] == 30
 

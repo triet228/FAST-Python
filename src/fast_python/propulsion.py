@@ -828,6 +828,8 @@ def power_available(aircraft, copy_aircraft=True):
     eta_ups = as_array(prop_arch["EtaUps"])
     oper_ups = prop_arch["OperUps"]
     lam_ups = as_2d(history["Power"]["LamUps"][seg_beg:seg_end])
+    default_windmill = [[0.0] for _ in range(len(history["Performance"]["TAS"]))]
+    windmill = as_2d(history["Power"].get("Windmill", default_windmill)[seg_beg:seg_end])
     ncomp = arch.shape[0]
     nsrc = len(as_vector(prop_arch["SrcType"]))
     ntrn = len(trn_type)
@@ -864,6 +866,11 @@ def power_available(aircraft, copy_aircraft=True):
         pav[ipnt, :] = np.concatenate(
             [np.zeros(nsrc), power_av[ipnt, :], np.zeros(nsnk)]
         )
+
+        if np.any(windmill[ipnt, :]):
+            off_trn = windmill[ipnt, windmill[ipnt, :] > 0].astype(int) + nsrc - 1
+            pav[ipnt, off_trn] = 0
+
         pav[ipnt, idx] = power_flow(
             pav[ipnt, idx],
             arch[np.ix_(idx, idx)],

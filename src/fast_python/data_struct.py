@@ -50,6 +50,7 @@ DEFAULT_AIRCRAFT = {
         },
         "Aero": {
             "L_D": {
+                "Method": NAN,
                 "Clb": NAN,
                 "Crs": NAN,
                 "Des": NAN,
@@ -80,6 +81,7 @@ DEFAULT_AIRCRAFT = {
                 "Prop": NAN,
             },
             "MDotCF": NAN,
+            "InletArea": NAN,
             "PropArch": {
                 "Type": NAN,
             },
@@ -120,6 +122,13 @@ DEFAULT_AIRCRAFT = {
                 "ParCells": NAN,
                 "SerCells": NAN,
                 "BegSOC": NAN,
+            },
+            "Windmill": {
+                "Tko": NAN,
+                "Clb": NAN,
+                "Crs": NAN,
+                "Des": NAN,
+                "Lnd": NAN,
             },
         },
         "Battery": {
@@ -218,8 +227,25 @@ def init_mission_history(aircraft):
     ncomp = len(prop_arch["Arch"])
     nsrc = len(prop_arch_vector(prop_arch["SrcType"]))
     ntrn = len(prop_arch_vector(prop_arch["TrnType"]))
-    narg_ups = max(1, int(settings.get("nargOperUps", 0)))
-    narg_dwn = max(1, int(settings.get("nargOperDwn", 0)))
+    power_specs = aircraft["Specs"].get("Power", {})
+    narg_ups = split_history_width(
+        power_specs.get("LamUps", {}).get("SLS"),
+        settings.get("nargOperUps", 0),
+    )
+    narg_dwn = split_history_width(
+        power_specs.get("LamDwn", {}).get("SLS"),
+        settings.get("nargOperDwn", 0),
+    )
+    windmill = power_specs.get("Windmill", {})
+    nwind = max(
+        [
+            value_length(windmill.get("Tko", 0)),
+            value_length(windmill.get("Clb", 0)),
+            value_length(windmill.get("Crs", 0)),
+            value_length(windmill.get("Des", 0)),
+            value_length(windmill.get("Lnd", 0)),
+        ]
+    )
 
     performance = {
         "Time": zero_vector(npnt),
@@ -234,6 +260,12 @@ def init_mission_history(aircraft):
         "Rho": zero_vector(npnt),
         "Ps": zero_vector(npnt),
     }
+    aero = {
+        "CL": zero_vector(npnt),
+        "CD": zero_vector(npnt),
+        "L_D": zero_vector(npnt),
+        "Dwm": zero_vector(npnt),
+    }
     propulsion = {
         "TSFC": zero_matrix(npnt, ntrn),
         "ExitMach": zero_matrix(npnt, ntrn),
@@ -247,6 +279,7 @@ def init_mission_history(aircraft):
     }
     power = {
         "TV": zero_vector(npnt),
+        "DV": zero_vector(npnt),
         "Req": zero_vector(npnt),
         "LamUps": zero_matrix(npnt, narg_ups),
         "LamDwn": zero_matrix(npnt, narg_dwn),
@@ -260,6 +293,7 @@ def init_mission_history(aircraft):
         "Voltage": zero_matrix(npnt, nsrc),
         "Current": zero_matrix(npnt, nsrc),
         "Capacity": zero_matrix(npnt, nsrc),
+        "Windmill": zero_matrix(npnt, nwind),
     }
     energy = {
         "KE": zero_vector(npnt),
@@ -269,6 +303,7 @@ def init_mission_history(aircraft):
     }
     mission_vars = {
         "Performance": performance,
+        "Aero": aero,
         "Propulsion": propulsion,
         "Weight": weight,
         "Power": power,
@@ -303,7 +338,7 @@ def clear_mission(aircraft, ielem=0):
     start = 0 if int(ielem) == 0 else int(ielem) - 1
     history = aircraft["Mission"]["History"]
 
-    for section_name in ("Performance", "Propulsion", "Weight", "Power", "Energy"):
+    for section_name in ("Performance", "Aero", "Propulsion", "Weight", "Power", "Energy"):
         section = history["SI"][section_name]
 
         for field_name, value in section.items():
@@ -398,6 +433,7 @@ def spec_processing(aircraft, database=None):
         "AlternateEngines": NAN,
         "NumEngines": 2,
         "MDotCF": 1,
+        "InletArea": NAN,
         "Eta": {
             "Therm": 0.3,
             "Prop": 0.85,
@@ -440,6 +476,13 @@ def spec_processing(aircraft, database=None):
             "ParCells": NAN,
             "SerCells": NAN,
             "BegSOC": NAN,
+        },
+        "Windmill": {
+            "Tko": 0,
+            "Clb": 0,
+            "Crs": 0,
+            "Des": 0,
+            "Lnd": 0,
         },
     }
     default_settings = {
@@ -632,6 +675,32 @@ def zero_matrix(rows, columns):
     """Return a zero matrix represented as nested lists."""
 
     return [[0.0 for _ in range(columns)] for _ in range(rows)]
+
+
+def value_length(value):
+    """Return MATLAB-like length for scalar or vector inputs."""
+
+    if hasattr(value, "value"):
+        value = value.value
+
+    array = np.asarray(value, dtype=float)
+
+    if array.ndim == 0:
+        return 1
+
+    if 0 in array.shape:
+        return 0
+
+    return max(array.shape)
+
+
+def split_history_width(value, fallback):
+    """Return split-history columns from specs or legacy settings."""
+
+    if value is None:
+        return max(1, int(fallback))
+
+    return value_length(value)
 
 
 def prop_arch_vector(value):

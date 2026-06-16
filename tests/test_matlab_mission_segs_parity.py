@@ -67,14 +67,14 @@ if isfield(matlab_aircraft, "Specs") && ...
        ~isa(matlab_aircraft.Specs.Propulsion.PropArch.OperUps, "function_handle")
 
         oper_ups_value = matlab_aircraft.Specs.Propulsion.PropArch.OperUps;
-        matlab_aircraft.Specs.Propulsion.PropArch.OperUps = @() oper_ups_value;
+        matlab_aircraft.Specs.Propulsion.PropArch.OperUps = @(varargin) oper_ups_value;
     end
 
     if isfield(matlab_aircraft.Specs.Propulsion.PropArch, "OperDwn") && ...
        ~isa(matlab_aircraft.Specs.Propulsion.PropArch.OperDwn, "function_handle")
 
         oper_dwn_value = matlab_aircraft.Specs.Propulsion.PropArch.OperDwn;
-        matlab_aircraft.Specs.Propulsion.PropArch.OperDwn = @() oper_dwn_value;
+        matlab_aircraft.Specs.Propulsion.PropArch.OperDwn = @(varargin) oper_dwn_value;
     end
 
     if isfield(matlab_aircraft.Specs.Propulsion.PropArch, "ParConns") && ...
@@ -82,6 +82,23 @@ if isfield(matlab_aircraft, "Specs") && ...
 
         ntrn = numel(matlab_aircraft.Specs.Propulsion.PropArch.TrnType);
         matlab_aircraft.Specs.Propulsion.PropArch.ParConns = cell(1, ntrn);
+    end
+
+    if ~isfield(matlab_aircraft.Specs.Propulsion.PropArch, "WhichProp")
+        ntrn = numel(matlab_aircraft.Specs.Propulsion.PropArch.TrnType);
+        matlab_aircraft.Specs.Propulsion.PropArch.WhichProp = zeros(1, ntrn);
+    end
+end
+
+if isfield(matlab_aircraft, "Specs") && ...
+   isfield(matlab_aircraft.Specs, "Aero") && ...
+   isfield(matlab_aircraft.Specs.Aero, "L_D")
+
+    if ~isfield(matlab_aircraft.Specs.Aero.L_D, "Method") || ...
+       ~isa(matlab_aircraft.Specs.Aero.L_D.Method, "function_handle")
+
+        matlab_aircraft.Specs.Aero.L_D.Method = ...
+            @(Aircraft) AerodynamicsPkg.ConstantLD(Aircraft);
     end
 end
 """
@@ -383,6 +400,9 @@ def complete_segment_profile(aircraft):
 
     aircraft = deepcopy(aircraft)
     profile = aircraft["Mission"]["Profile"]
+    specs = aircraft["Specs"]
+    power = specs.setdefault("Power", {})
+    windmill = power.setdefault("Windmill", {})
     nseg = len(profile.get("SegPts", [1]))
     defaults = {
         "AltBeg": 0,
@@ -397,6 +417,14 @@ def complete_segment_profile(aircraft):
     for key, value in defaults.items():
         if key not in profile:
             profile[key] = [value for _ in range(nseg)]
+
+    for key in ("Tko", "Clb", "Crs", "Des", "Lnd"):
+        windmill.setdefault(key, 0)
+
+    aero = specs.get("Aero", {})
+
+    if isinstance(aero, dict) and "L_D" in aero and "S" not in aero and "W_S" in aero:
+        aero["S"] = specs["Weight"]["MTOW"] / aero["W_S"]["SLS"]
 
     return aircraft
 

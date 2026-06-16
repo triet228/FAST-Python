@@ -228,7 +228,8 @@ def test_diversion_mission_uses_takeoff_speed_and_delta_knots():
     assert profile["AltBeg"][2] == convert_length(3000, "ft", "m")
     assert profile["AltEnd"][2] == convert_length(10000, "ft", "m")
     assert profile["VelBeg"][2] == 70 + convert_velocity(10, "kts", "m/s")
-    assert profile["TypeEnd"][2] == "Mach"
+    assert profile["VelEnd"][2] == convert_velocity(250, "kts", "m/s")
+    assert profile["TypeEnd"][2] == "TAS"
     assert result["Mission"]["Profile"]["VelBeg"][2] == 70
 
 

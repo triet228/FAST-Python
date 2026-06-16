@@ -505,6 +505,7 @@ def eval_landing(aircraft, copy_aircraft=True):
     assign_history_vector(history["Performance"], "Acc", dvelocity_dt, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "FPA", fpa, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Ps", ps, seg_beg, seg_end)
+    assign_history_vector(history["Power"], "DV", np.zeros(npoint), seg_beg, seg_end)
     assign_history_vector(history["Energy"], "PE", pe, seg_beg, seg_end)
     assign_history_vector(history["Energy"], "KE", ke, seg_beg, seg_end)
     aircraft["Mission"]["History"]["Segment"][seg_beg:seg_end] = [
@@ -539,7 +540,6 @@ def eval_cruise(aircraft, copy_aircraft=True):
     profile = aircraft["Mission"]["Profile"]
     history = aircraft["Mission"]["History"]["SI"]
     dh_dt_max = specs["Performance"]["RCMax"]
-    lift_drag = specs["Aero"]["L_D"]["Crs"]
     seg_id = int(profile["SegsID"]) - 1
     npoint = int(profile["SegPts"][seg_id])
     seg_beg = int(profile["SegBeg"][seg_id]) - 1
@@ -624,8 +624,18 @@ def eval_cruise(aircraft, copy_aircraft=True):
     pav = np.asarray(history["Power"]["TV"][seg_beg:seg_end], dtype=float)
 
     for _ in range(max_iter):
-        lift = mass * gravity * np.cos(np.radians(fpa))
-        drag = lift / lift_drag
+        drag = apply_constant_aero(
+            history,
+            specs,
+            "Crs",
+            mass,
+            alt,
+            tas,
+            rho,
+            fpa,
+            seg_beg,
+            seg_end,
+        )
         drag_power = drag * tas
         ps = (pav - drag_power) / (mass * gravity)
         pe = mass * gravity * alt
@@ -653,6 +663,7 @@ def eval_cruise(aircraft, copy_aircraft=True):
     assign_history_vector(history["Performance"], "Acc", dvelocity_dt, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "FPA", fpa, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Ps", ps, seg_beg, seg_end)
+    assign_history_vector(history["Power"], "DV", drag_power, seg_beg, seg_end)
     assign_history_vector(history["Energy"], "PE", pe, seg_beg, seg_end)
     assign_history_vector(history["Energy"], "KE", ke, seg_beg, seg_end)
     aircraft["Mission"]["History"]["Segment"][seg_beg:seg_end] = [
@@ -1287,7 +1298,6 @@ def eval_climb(aircraft, copy_aircraft=True):
     profile = aircraft["Mission"]["Profile"]
     history = aircraft["Mission"]["History"]["SI"]
     dh_dt_max = specs["Performance"]["RCMax"]
-    lift_drag = specs["Aero"]["L_D"]["Clb"]
     seg_id = int(profile["SegsID"]) - 1
     npoint = int(profile["SegPts"][seg_id])
     seg_beg = int(profile["SegBeg"][seg_id]) - 1
@@ -1384,8 +1394,18 @@ def eval_climb(aircraft, copy_aircraft=True):
         with np.errstate(divide="ignore", invalid="ignore"):
             fpa = np.degrees(np.arcsin(dh_dt / tas))
 
-        lift = mass * gravity * np.cos(np.radians(fpa))
-        drag = lift / lift_drag
+        drag = apply_constant_aero(
+            history,
+            specs,
+            "Clb",
+            mass,
+            alt,
+            tas,
+            rho,
+            fpa,
+            seg_beg,
+            seg_end,
+        )
         drag_power = drag * tas
         ps = (pav - drag_power) / (mass * gravity)
 
@@ -1445,6 +1465,7 @@ def eval_climb(aircraft, copy_aircraft=True):
     assign_history_vector(history["Performance"], "Acc", dvelocity_dt, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "FPA", fpa, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Ps", ps, seg_beg, seg_end)
+    assign_history_vector(history["Power"], "DV", drag_power, seg_beg, seg_end)
     assign_history_vector(history["Energy"], "PE", pe, seg_beg, seg_end)
     assign_history_vector(history["Energy"], "KE", ke, seg_beg, seg_end)
     aircraft["Mission"]["History"]["Segment"][seg_beg:seg_end] = [
@@ -1479,7 +1500,6 @@ def eval_descent(aircraft, copy_aircraft=True):
     profile = aircraft["Mission"]["Profile"]
     history = aircraft["Mission"]["History"]["SI"]
     rate_descent_max = -0.8 * specs["Performance"]["RCMax"]
-    lift_drag = specs["Aero"]["L_D"]["Des"]
     seg_id = int(profile["SegsID"]) - 1
     npoint = int(profile["SegPts"][seg_id])
     seg_beg = int(profile["SegBeg"][seg_id]) - 1
@@ -1567,8 +1587,18 @@ def eval_descent(aircraft, copy_aircraft=True):
         with np.errstate(divide="ignore", invalid="ignore"):
             fpa = np.degrees(np.arcsin(dh_dt / tas))
 
-        lift = mass * gravity * np.cos(np.radians(fpa))
-        drag = lift / lift_drag
+        drag = apply_constant_aero(
+            history,
+            specs,
+            "Des",
+            mass,
+            alt,
+            tas,
+            rho,
+            fpa,
+            seg_beg,
+            seg_end,
+        )
         energy_height = alt + tas ** 2 / (2 * gravity)
         denergy_height = np.diff(energy_height)
         drag_power = drag * tas
@@ -1631,6 +1661,7 @@ def eval_descent(aircraft, copy_aircraft=True):
     assign_history_vector(history["Performance"], "Acc", dvelocity_dt, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "FPA", fpa, seg_beg, seg_end)
     assign_history_vector(history["Performance"], "Ps", ps, seg_beg, seg_end)
+    assign_history_vector(history["Power"], "DV", drag_power, seg_beg, seg_end)
     assign_history_vector(history["Energy"], "PE", pe, seg_beg, seg_end)
     assign_history_vector(history["Energy"], "KE", ke, seg_beg, seg_end)
     aircraft["Mission"]["History"]["Segment"][seg_beg:seg_end] = [
@@ -1874,8 +1905,45 @@ def set_split_history(history, specs, segment_key, start, stop):
     rows = stop - start
     lam_dwn = row_matrix(specs["Power"]["LamDwn"][segment_key], rows)
     lam_ups = row_matrix(specs["Power"]["LamUps"][segment_key], rows)
+    windmill = row_matrix(specs["Power"].get("Windmill", {}).get(segment_key, 0), rows)
     assign_history_matrix(history["Power"], "LamDwn", lam_dwn, start, stop)
     assign_history_matrix(history["Power"], "LamUps", lam_ups, start, stop)
+    assign_history_matrix(history["Power"], "Windmill", windmill, start, stop)
+
+
+def apply_constant_aero(history, specs, segment_key, mass, alt, tas, rho, fpa, start, stop):
+    """Store ConstantLD aero history and return drag for one segment."""
+
+    gravity = 9.81
+    lift_drag = specs["Aero"]["L_D"][segment_key]
+    wing_area = aero_reference_area(specs)
+    lift = mass * gravity * np.cos(np.radians(fpa))
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        dynamic_pressure = 0.5 * rho * tas ** 2
+        cl = lift / (dynamic_pressure * wing_area)
+        cd = cl / lift_drag
+
+    drag = dynamic_pressure * wing_area * cd
+    assign_history_vector(history["Aero"], "CL", cl, start, stop)
+    assign_history_vector(history["Aero"], "CD", cd, start, stop)
+    assign_history_vector(history["Aero"], "L_D", np.ones(stop - start) * lift_drag, start, stop)
+    return drag
+
+
+def aero_reference_area(specs):
+    """Return wing area, falling back to MTOW divided by wing loading."""
+
+    aero = specs["Aero"]
+    wing_area = aero.get("S", np.nan)
+
+    if is_nan(wing_area):
+        wing_area = aero.get("Wing", {}).get("S", np.nan)
+
+    if is_nan(wing_area):
+        wing_area = specs["Weight"]["MTOW"] / aero["W_S"]["SLS"]
+
+    return wing_area
 
 
 def row_matrix(value, rows):

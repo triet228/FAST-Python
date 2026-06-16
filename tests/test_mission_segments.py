@@ -278,6 +278,13 @@ def make_takeoff_aircraft():
                     "SerCells": float("nan"),
                     "ParCells": float("nan"),
                 },
+                "Windmill": {
+                    "Tko": 0,
+                    "Clb": 0,
+                    "Crs": 0,
+                    "Des": 0,
+                    "Lnd": 0,
+                },
             },
             "Propulsion": {
                 "SLSPower": [1000],
@@ -311,6 +318,7 @@ def make_takeoff_aircraft():
                     ],
                     "SrcType": [0],
                     "TrnType": [0],
+                    "WhichProp": [0],
                     "ParConns": [[]],
                 },
             },
@@ -403,8 +411,12 @@ def make_cruise_aircraft():
 
     aircraft = make_takeoff_aircraft()
     aircraft["Specs"]["Aero"] = {
+        "S": 10,
         "L_D": {
+            "Method": "ConstantLD",
+            "Clb": 10,
             "Crs": 10,
+            "Des": 10,
         }
     }
     aircraft["Specs"]["Performance"]["RCMax"] = 1000
@@ -492,6 +504,7 @@ def make_cruise_breguet_aircraft():
                     ],
                     "SrcType": [1],
                     "TrnType": [1, 2],
+                    "WhichProp": [0, 0],
                 },
             },
         },
@@ -557,8 +570,12 @@ def make_climb_aircraft():
 
     aircraft = make_cruise_aircraft()
     aircraft["Specs"]["Aero"] = {
+        "S": 10,
         "L_D": {
+            "Method": "ConstantLD",
             "Clb": 10,
+            "Crs": 10,
+            "Des": 10,
         }
     }
     aircraft["Specs"]["Power"]["LamDwn"] = {
@@ -591,7 +608,11 @@ def make_descent_aircraft():
 
     aircraft = make_cruise_aircraft()
     aircraft["Specs"]["Aero"] = {
+        "S": 10,
         "L_D": {
+            "Method": "ConstantLD",
+            "Clb": 10,
+            "Crs": 10,
             "Des": 10,
         }
     }
@@ -629,7 +650,9 @@ def make_full_mission_aircraft():
     aircraft["Settings"]["CrsPoints"] = 3
     aircraft["Settings"]["DesPoints"] = 3
     aircraft["Specs"]["Aero"] = {
+        "S": 10,
         "L_D": {
+            "Method": "ConstantLD",
             "Clb": 10,
             "Crs": 10,
             "Des": 10,

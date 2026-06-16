@@ -56,10 +56,13 @@ def test_init_mission_history_allocates_fast_shapes():
     si = history["SI"]
 
     assert len(si["Performance"]["Time"]) == 6
+    assert len(si["Aero"]["CL"]) == 6
     assert len(si["Propulsion"]["TSFC"]) == 6
     assert len(si["Propulsion"]["TSFC"][0]) == 2
+    assert len(si["Power"]["Windmill"][0]) == 1
     assert len(si["Power"]["LamUps"][0]) == 2
     assert len(si["Power"]["LamDwn"][0]) == 1
+    assert si["Power"]["DV"] == [0.0] * 6
     assert len(si["Power"]["Pav"][0]) == 4
     assert len(si["Energy"]["E_ES"][0]) == 1
     assert history["Segment"] == ["", "", "", "", "", ""]

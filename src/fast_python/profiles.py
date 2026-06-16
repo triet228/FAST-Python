@@ -482,6 +482,7 @@ def mission_profile_diversion(aircraft, dv=0):
 
     vtko = aircraft["Specs"]["Performance"]["Vels"]["Tko"]
     vtrn = vtko + convert_velocity(dv, "kts", "m/s")
+    vcrs = convert_velocity(250, "kts", "m/s")
     int_alt = convert_length(3000, "ft", "m")
     div_alt = convert_length(10000, "ft", "m")
     return {
@@ -494,10 +495,10 @@ def mission_profile_diversion(aircraft, dv=0):
         "AltBeg": [0, 0, int_alt, div_alt, div_alt, 0],
         "AltEnd": [0, int_alt, div_alt, div_alt, 0, 0],
         "ClbRate": [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan],
-        "VelBeg": [0, vtko, vtrn, 0.40, 0.40, 1.1 * vtko],
-        "VelEnd": [vtko, vtrn, 0.40, 0.40, 1.1 * vtko, 0],
-        "TypeBeg": ["TAS", "TAS", "TAS", "Mach", "Mach", "TAS"],
-        "TypeEnd": ["TAS", "TAS", "Mach", "Mach", "TAS", "TAS"],
+        "VelBeg": [0, vtko, vtrn, vcrs, vcrs, 1.1 * vtko],
+        "VelEnd": [vtko, vtrn, vcrs, vcrs, 1.1 * vtko, 0],
+        "TypeBeg": ["TAS", "TAS", "TAS", "TAS", "TAS", "TAS"],
+        "TypeEnd": ["TAS", "TAS", "TAS", "TAS", "TAS", "TAS"],
     }
 
 

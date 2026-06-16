@@ -135,6 +135,11 @@ Known parity notes:
 
 - `MissionProfilesPkg.TakeoffTestProfile` is an expected failure when MATLAB
   lacks Aerospace Toolbox `convlength`.
+- End-to-end output parity marks current MATLAB `SpecProcessing` failures as
+  expected when legacy aircraft specs omit `Aero.L_D.Method`.
+- `A320`, `ERJ175LR`, and `ERJ175LR_ClimbThenAccel` are expected output-parity
+  failures while FAST-Python still uses constant-L/D mission aerodynamics and
+  MATLAB FAST flies those cases with `AerodynamicsPkg.DragPolar`.
 - `ERJ190_FE` remains an expected end-to-end parity failure when MATLAB FAST
   itself reaches `Settings.Converged = 0`.
 

@@ -770,16 +770,31 @@ def erj175lr():
     """Return AircraftSpecsPkg.ERJ175LR's conventional aircraft specification."""
 
     aircraft = erj175lr_base()
+    specs = aircraft["Specs"]
+    aero = specs["Aero"]
+    propulsion = specs["Propulsion"]
     power = aircraft["Specs"]["Power"]
-    aircraft["Specs"]["Propulsion"]["PropArch"]["Type"] = "C"
-    aircraft["Specs"]["Weight"]["Batt"] = 0
-    aircraft["Specs"]["Power"]["SpecEnergy"]["Batt"] = np.nan
-    power["LamDwn"] = zero_segment_splits()
-    power["LamUps"] = zero_segment_splits()
+    aero["L_D"]["Method"] = "DragPolar"
+    aero["L_D"]["ClbCF"] = 1.000
+    aero["L_D"]["CrsCF"] = 1.000
+    aero["L_D"]["Clb"] = 10.9773
+    aero["L_D"]["Crs"] = 15.2000
+    aero["L_D"]["Des"] = 10.9773
+    aero.update(erj175lr_drag_polar_aero())
+    propulsion["MDotCF"] = 1.050
+    propulsion["InletArea"] = [np.nan, np.nan, np.nan, 1.4914, 1.4914, np.nan]
+    propulsion["PropArch"]["Type"] = "C"
+    specs["Weight"]["WairfCF"] = 1.016
+    specs["Weight"]["Batt"] = 0
+    power["SpecEnergy"]["Batt"] = np.nan
+    power["LamDwn"] = empty_segment_splits()
+    power["LamUps"] = empty_segment_splits()
     power["Eta"]["EM"] = np.nan
     power["Eta"]["EG"] = np.nan
     power["P_W"]["EM"] = np.nan
     power["P_W"]["EG"] = np.nan
+    power["Windmill"] = zero_windmill_splits()
+    specs["Battery"] = erj175lr_battery_specs()
     return aircraft
 
 
@@ -1064,6 +1079,7 @@ def a320neo():
             },
             "Aero": {
                 "L_D": {
+                    "Method": "DragPolar",
                     "ClbCF": 1,
                     "CrsCF": 1,
                     "Clb": 16,
@@ -1073,9 +1089,55 @@ def a320neo():
                 "W_S": {
                     "SLS": 79000 / 126.5,
                 },
+                "ScaleCD0": 1,
+                "ScaleCDI": 1,
+                "ScaleSub": 0.8016,
+                "ScaleSup": 1,
+                "ScaleWnd": 1,
+                "Components": {
+                    "Cf": [0.0026, 0.0026, 0.0026, 0.0026, 0.0026, 0.0026],
+                    "Re": [2e6, 2e6, 2e6, 2e6, 2e6, 2e6],
+                    "Fine": [9.5114, 0.12, 0.12, 0.12, 1.5928, 1.5928],
+                    "Swet": [441.0079, 49.1499, 46.6784, 200.0672, 17.4970, 17.4970],
+                    "LamFracUpper": [0, 0, 0, 0, 0, 0],
+                    "LamFracLower": [0, 0, 0, 0, 0, 0],
+                },
+                "Wing": {
+                    "S": 126.5,
+                    "AirfoilTech": 1,
+                    "AR": 10.1315,
+                    "MaxCamber": 0.02,
+                    "t_c": 0.12,
+                    "e": 0.85,
+                    "Sweep": 26.9085,
+                    "TR": 0.2702,
+                    "Redux": 0,
+                },
+                "ExcrescencesDrag": 0.06,
+                "DesignCL": 0.5,
+                "DesignMach": 0.82,
+                "Vtail": {
+                    "AR": 3.38,
+                    "e": 1,
+                    "S": 22.7550,
+                    "Eta": 1,
+                    "TAF": 0.9,
+                    "VArm": 17.24,
+                },
+                "Rudder": {
+                    "S": 6.519,
+                    "b": 6.068,
+                },
+                "Fuse": {
+                    "Area": 13.4614,
+                    "Len_Diam": 9.0749,
+                    "Diam_Span": 0.1156,
+                    "DistToEng": 5.701,
+                },
+                "BaseArea": 0,
             },
             "Propulsion": {
-                "MDotCF": 1,
+                "MDotCF": 1.092,
                 "PropArch": {
                     "Type": "C",
                 },
@@ -1090,6 +1152,7 @@ def a320neo():
                 "Eta": {
                     "Prop": 0.8,
                 },
+                "InletArea": [np.nan, np.nan, np.nan, 1.9831, 1.9831, np.nan],
             },
             "Performance": {
                 "Vels": {
@@ -1104,7 +1167,7 @@ def a320neo():
                 "RCMax": convert_length(2250 / 60, "ft", "m"),
             },
             "Weight": {
-                "WairfCF": 1,
+                "WairfCF": 0.993,
                 "MTOW": 79000,
                 "EG": np.nan,
                 "EM": np.nan,
@@ -1125,20 +1188,21 @@ def a320neo():
                     "EM": np.nan,
                     "EG": np.nan,
                 },
-                "LamUps": zero_segment_splits(),
-                "LamDwn": zero_segment_splits(),
+                "LamUps": empty_segment_splits(),
+                "LamDwn": empty_segment_splits(),
                 "Battery": {
                     "ParCells": np.nan,
                     "SerCells": np.nan,
                     "BegSOC": np.nan,
                 },
+                "Windmill": zero_windmill_splits(),
             },
         },
         "Settings": base_settings(
-            tko_points=4,
-            clb_points=5,
-            crs_points=5,
-            des_points=5,
+            tko_points=10,
+            clb_points=10,
+            crs_points=10,
+            des_points=10,
             plotting=0,
             table=0,
         ),
@@ -1501,6 +1565,102 @@ def zero_segment_splits():
         "Crs": 0,
         "Des": 0,
         "Lnd": 0,
+    }
+
+
+def empty_segment_splits():
+    """Return empty FAST split fields for conventional non-electric presets."""
+
+    return {
+        "SLS": [],
+        "Tko": [],
+        "Clb": [],
+        "Crs": [],
+        "Des": [],
+        "Lnd": [],
+    }
+
+
+def zero_windmill_splits():
+    """Return zero-valued windmilling split fields."""
+
+    return {
+        "Tko": 0,
+        "Clb": 0,
+        "Crs": 0,
+        "Des": 0,
+        "Lnd": 0,
+    }
+
+
+def erj175lr_battery_specs():
+    """Return ERJ175LR's cell-model battery defaults."""
+
+    return {
+        "NomVolCell": 3.6,
+        "MaxExtVolCell": 4.0880,
+        "CapCell": 3,
+        "IntResist": 0.0199,
+        "ExpVol": 0.0986,
+        "ExpCap": 30,
+        "MinSOC": 20,
+        "BegSOC": 100,
+        "MaxAllowCRate": 5,
+        "Charging": 500 * 1000,
+        "Degradation": 0,
+    }
+
+
+def erj175lr_drag_polar_aero():
+    """Return ERJ175LR's DragPolar geometry and scale factors."""
+
+    return {
+        "ScaleCD0": 1,
+        "ScaleCDI": 1,
+        "ScaleSub": 0.8942,
+        "ScaleSup": 1,
+        "ScaleWnd": 1,
+        "Components": {
+            "Cf": [0.0026, 0.0026, 0.0026, 0.0026, 0.0026, 0.0026],
+            "Re": [2e6, 2e6, 2e6, 2e6, 2e6, 2e6],
+            "Fine": [9.8385, 0.12, 0.12, 0.12, 1.6734, 1.6734],
+            "Swet": [301.4080, 37.3547, 35.3073, 126.2423, 8.4248, 8.4248],
+            "LamFracUpper": [0, 0, 0, 0, 0, 0],
+            "LamFracLower": [0, 0, 0, 0, 0, 0],
+        },
+        "Wing": {
+            "S": 79.8322,
+            "AirfoilTech": 1,
+            "AR": 10.3465,
+            "MaxCamber": 0.02,
+            "t_c": 0.12,
+            "e": 0.85,
+            "Sweep": 26.4413,
+            "TR": 0.2441,
+            "Redux": 0,
+        },
+        "ExcrescencesDrag": 0.06,
+        "DesignCL": 0.5,
+        "DesignMach": 0.78,
+        "Vtail": {
+            "AR": 3.23,
+            "e": 1,
+            "S": 17.3102,
+            "Eta": 1,
+            "TAF": 0.9,
+            "VArm": 14.6485,
+        },
+        "Rudder": {
+            "S": 4.2353,
+            "b": 5.25,
+        },
+        "Fuse": {
+            "Area": 9.8980,
+            "Len_Diam": 8.9239,
+            "Diam_Span": 0.1235,
+            "DistToEng": 3.8688,
+        },
+        "BaseArea": 0,
     }
 
 
