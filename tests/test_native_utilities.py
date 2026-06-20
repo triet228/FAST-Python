@@ -4,6 +4,8 @@
 
 import math
 
+import numpy as np
+
 from fast_python.atmosphere import gravity, standard_atmosphere
 from fast_python.mission import compute_flight_conditions, process_profile
 from fast_python.units import (
@@ -55,6 +57,18 @@ def test_standard_atmosphere_accepts_lists():
     assert len(densities) == 2
     assert_close(temps[0], 288.15)
     assert_close(temps[1], 216.65)
+
+
+def test_standard_atmosphere_accepts_numpy_arrays():
+    """Check StdAtm preserves NumPy array shape like MATLAB."""
+
+    temps, pressures, densities = standard_atmosphere(np.asarray([[0, 11000]]))
+
+    assert temps.shape == (1, 2)
+    assert pressures.shape == (1, 2)
+    assert densities.shape == (1, 2)
+    assert_close(temps[0, 0], 288.15)
+    assert_close(temps[0, 1], 216.65)
 
 
 def test_process_profile_adds_segment_indices():

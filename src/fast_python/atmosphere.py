@@ -4,6 +4,8 @@
 
 import math
 
+import numpy as np
+
 
 def gravity(altitude):
     """Return gravitational acceleration at altitude in m/s^2.
@@ -31,14 +33,19 @@ def standard_atmosphere(altitude):
     """Return temperature, pressure, and density for altitude in meters.
 
     Inputs:
-        altitude: Scalar or list of altitudes between 0 and 100000 m.
+        altitude: Scalar, list, tuple, or NumPy array of altitudes between 0
+            and 100000 m.
 
     Outputs:
-        A tuple of temperature in K, pressure in Pa, and density in kg/m^3.
+        A tuple of temperature in K, pressure in Pa, and density in kg/m^3
+        with the input shape preserved.
 
     Assumptions:
         Constants and layer breakpoints mirror FAST MissionSegsPkg.StdAtm.
     """
+
+    if isinstance(altitude, np.ndarray):
+        return standard_atmosphere_array(altitude)
 
     if isinstance(altitude, list) or isinstance(altitude, tuple):
         values = [standard_atmosphere(item) for item in altitude]
@@ -80,6 +87,87 @@ def standard_atmosphere(altitude):
     else:
         temp = 186.65
         pressure = 0.3615 * math.exp(-g * (alt - 85000) / (gas_constant * temp))
+
+    density = pressure / (gas_constant * temp)
+    return temp, pressure, density
+
+
+def standard_atmosphere_array(altitude):
+    """Return StdAtm values for a NumPy altitude array."""
+
+    alt = np.asarray(altitude, dtype=float)
+
+    if alt.ndim == 0:
+        return standard_atmosphere(float(alt))
+
+    if np.any(alt < 0) or np.any(alt > 100000):
+        raise ValueError("Altitude must be between 0 and 100000 m.")
+
+    g = 9.81
+    gas_constant = 287
+    temp = np.zeros_like(alt, dtype=float)
+    pressure = np.zeros_like(alt, dtype=float)
+    section01 = (alt >= 0) & (alt < 11000)
+    section02 = (alt >= 11000) & (alt < 20000)
+    section03 = (alt >= 20000) & (alt < 32000)
+    section04 = (alt >= 32000) & (alt < 47000)
+    section05 = (alt >= 47000) & (alt < 51000)
+    section06 = (alt >= 51000) & (alt < 71000)
+    section07 = (alt >= 71000) & (alt < 85000)
+    section08 = (alt >= 85000) & (alt <= 100000)
+
+    if np.any(section01):
+        temp[section01] = 288.15 - 0.0065 * alt[section01]
+        pressure[section01] = (
+            101300
+            * (temp[section01] / 288.15) ** (-g / (gas_constant * -0.0065))
+        )
+
+    if np.any(section02):
+        temp[section02] = 216.65
+        pressure[section02] = 2.2609e4 * np.exp(
+            -g * (alt[section02] - 11000) / (gas_constant * temp[section02])
+        )
+
+    if np.any(section03):
+        temp[section03] = 216.65 + 0.0010 * (alt[section03] - 20000)
+        pressure[section03] = (
+            5.4731e3
+            * (temp[section03] / 216.65) ** (-g / (gas_constant * 0.0010))
+        )
+
+    if np.any(section04):
+        temp[section04] = 228.65 + 0.0028 * (alt[section04] - 32000)
+        pressure[section04] = (
+            866.8940
+            * (temp[section04] / 228.65) ** (-g / (gas_constant * 0.0028))
+        )
+
+    if np.any(section05):
+        temp[section05] = 270.65
+        pressure[section05] = 110.6427 * np.exp(
+            -g * (alt[section05] - 47000) / (gas_constant * temp[section05])
+        )
+
+    if np.any(section06):
+        temp[section06] = 270.65 - 0.0028 * (alt[section06] - 51000)
+        pressure[section06] = (
+            66.7260
+            * (temp[section06] / 270.65) ** (-g / (gas_constant * -0.0028))
+        )
+
+    if np.any(section07):
+        temp[section07] = 214.65 - 0.0020 * (alt[section07] - 71000)
+        pressure[section07] = (
+            3.9401
+            * (temp[section07] / 214.65) ** (-g / (gas_constant * -0.0020))
+        )
+
+    if np.any(section08):
+        temp[section08] = 186.65
+        pressure[section08] = 0.3615 * np.exp(
+            -g * (alt[section08] - 85000) / (gas_constant * temp[section08])
+        )
 
     density = pressure / (gas_constant * temp)
     return temp, pressure, density

@@ -22,6 +22,8 @@ Related repositories:
   profiles and segments, aircraft and engine specs, propulsion, battery,
   engine, optimization, constraint, OEW, database, plotting, safety,
   regression, retrofit, cost, and projection helpers.
+- Atmosphere and flight-condition helpers preserve MATLAB-style scalar, list,
+  and NumPy array shapes where the MATLAB reference accepts vector inputs.
 - Native case factories for the MATLAB example matrix covered by parity tests.
 - Deterministic reference replay for bundled wrapper-validated fixture cases.
 

@@ -273,6 +273,26 @@ def test_gravity_and_standard_atmosphere_match_matlab(matlab_wrapper):
         np.testing.assert_allclose(standard_atmosphere(altitude), expected)
 
 
+def test_standard_atmosphere_array_shape_matches_matlab(matlab_wrapper):
+    """Compare StdAtm vector input shape against MATLAB."""
+
+    wrapper, wrapper_build_json_data = matlab_wrapper
+    altitudes = np.asarray([[0, 11000, 20000]])
+    actual = build_json_data(standard_atmosphere(altitudes))
+    wrapper.engine.evalc(
+        """
+        [matlab_temp, matlab_press, matlab_rho] = ...
+            MissionSegsPkg.StdAtm([0, 11000, 20000]);
+        matlab_atmosphere = {matlab_temp, matlab_press, matlab_rho};
+        """,
+        nargout=1,
+    )
+    expected = wrapper_build_json_data(
+        wrapper._to_python_data(wrapper.engine.workspace["matlab_atmosphere"])
+    )
+    assert_parity(actual, expected, "Atmosphere")
+
+
 @pytest.mark.parametrize(
     "velocity_type, velocity",
     [
