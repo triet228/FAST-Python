@@ -100,11 +100,13 @@ $env:FAST_PYTHON_WRAPPER_PATH="C:\path\to\FAST-Python-Wrapper"
 $env:FAST_PATH="C:\path\to\FAST"
 ```
 
-Run direct MATLAB parity checks for specs, profiles, and mission segments:
+Run direct MATLAB parity checks for batteries, specs, profiles, and mission
+segments:
 
 ```sh
 FAST_PYTHON_RUN_MATLAB_PARITY=1 \
 python -m pytest -q \
+  tests/test_matlab_battery_parity.py \
   tests/test_matlab_aircraft_specs_parity.py \
   tests/test_matlab_engine_specs_parity.py \
   tests/test_matlab_mission_profiles_parity.py \

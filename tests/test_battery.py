@@ -44,6 +44,26 @@ def test_discharging_and_charging_match_representative_values():
     assert_array_close(charged[5], [-0.0370228563567797, -0.022199571000967158])
 
 
+def test_charging_mixed_power_vector_matches_matlab_branching():
+    """Check Charging preserves MATLAB's vector-wide Preq branch condition."""
+
+    charged = charging(
+        make_battery_model_aircraft(),
+        [500, -300],
+        [60, 120],
+        90,
+        100,
+        10,
+    )
+
+    assert_array_close(charged[0], [-0.018347377347023297, 1900662.874305772])
+    assert_array_close(charged[1], [-27251.85134328167, -0.00015783966954664526])
+    assert_array_close(charged[2], [500.0000000001725, -300.0])
+    assert_array_close(charged[3], [288.0, 320.0])
+    assert_array_close(charged[4], [231.93672574625867, 231.9367273904219])
+    assert_array_close(charged[5], [-85.16203544775522, -4.932489673332664e-07])
+
+
 def test_ground_charge_populates_charged_aircraft_history():
     """Check GroundCharge records charging history and raises SOC."""
 

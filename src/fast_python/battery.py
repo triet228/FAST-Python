@@ -59,6 +59,11 @@ def charging(aircraft, preq, time, soc_beg=None, parallel=1, series=1):
         Tuple of pack voltage, current, output power, charge capacity, SOC,
         and C-rate arrays. Unlike discharging(), SOC omits the initial value to
         match BatteryPkg.Charging's MATLAB return shape.
+
+    Assumptions:
+        BatteryPkg.Charging branches on the full Preq vector rather than the
+        current time step, so mixed-sign power vectors use the charging branch
+        for every control point.
     """
 
     return battery_power_dynamics(
@@ -404,7 +409,7 @@ def battery_power_dynamics(
         preq_cell = preq[index] / ncell
         soc_fraction = soc[index] / 100
         discharged_start = (1 - soc_fraction) * q_cell
-        is_discharge = preq[index] >= 0
+        is_discharge = uses_discharge_branch(preq, index, label)
 
         with np.errstate(divide="ignore", invalid="ignore"):
             if is_discharge:
@@ -469,6 +474,29 @@ def prepare_power_time(preq, time, label):
         )
 
     return preq, time
+
+
+def uses_discharge_branch(preq, index, label):
+    """Return the MATLAB-compatible current-sign branch for one step.
+
+    Inputs:
+        preq: One-dimensional requested pack powers in watts.
+        index: Current time-step index.
+        label: BatteryPkg caller name.
+
+    Outputs:
+        True when FAST selects the discharge-current root.
+
+    Assumptions:
+        Discharging uses Preq(itime), while Charging's MATLAB source uses the
+        whole Preq vector in its branch conditions. MATLAB treats that vector
+        condition as true only when every entry is nonnegative.
+    """
+
+    if label == "Charging":
+        return bool(np.all(preq >= 0))
+
+    return bool(preq[index] >= 0)
 
 
 def prepare_initial_soc(soc_beg, label):
