@@ -189,6 +189,82 @@ def test_compare_json_value_ignores_selected_missing_only_paths():
     assert failures == []
 
 
+def test_compare_json_value_accepts_new_actual_history_fields():
+    """Check current MATLAB history fields do not break old wrapper baselines."""
+
+    failures, compared = compare_json_value(
+        {
+            "Mission": {
+                "History": {
+                    "SI": {
+                        "Aero": {
+                            "CL": [0.1],
+                            "CD": [0.02],
+                            "L_D": [5.0],
+                            "Dwm": [0.0],
+                        },
+                        "Power": {
+                            "DV": [123.0],
+                            "Req": [456.0],
+                        },
+                    }
+                }
+            }
+        },
+        {
+            "Mission": {
+                "History": {
+                    "SI": {
+                        "Power": {
+                            "Req": [456.0],
+                        },
+                    }
+                }
+            }
+        },
+    )
+
+    assert compared > 0
+    assert failures == []
+
+
+def test_compare_json_value_reports_missing_current_history_fields():
+    """Check missing current MATLAB history fields are still visible."""
+
+    failures, compared = compare_json_value(
+        {
+            "Mission": {
+                "History": {
+                    "SI": {
+                        "Power": {
+                            "Req": [456.0],
+                        },
+                    }
+                }
+            }
+        },
+        {
+            "Mission": {
+                "History": {
+                    "SI": {
+                        "Aero": {
+                            "CL": [0.1],
+                        },
+                        "Power": {
+                            "DV": [123.0],
+                            "Req": [456.0],
+                        },
+                    }
+                }
+            }
+        },
+    )
+
+    assert compared > 0
+    assert "Aircraft.Mission.History.SI.Aero missing from actual output" in failures
+    assert "Aircraft.Mission.History.SI.Power.DV missing from actual output" in failures
+
+
 def test_compare_json_value_ignores_missing_internal_profile_function():
     """Check missing wrapper-only callback metadata is ignored."""
 

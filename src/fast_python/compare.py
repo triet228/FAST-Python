@@ -37,6 +37,10 @@ IGNORED_MISSING_OUTPUT_PATHS = {
     "Aircraft.Specs.Power.Eta.Propeller",
     "Aircraft.Specs.Propulsion.Eta.Therm",
 }
+IGNORED_EXTRA_ACTUAL_OUTPUT_PATHS = {
+    "Aircraft.Mission.History.SI.Aero",
+    "Aircraft.Mission.History.SI.Power.DV",
+}
 UNPARSED_REPR = object()
 
 
@@ -91,6 +95,7 @@ def compare_json_value(actual, expected, path="Aircraft"):
             if (
                 not is_ignored_path(child_path)
                 and not is_ignored_missing_path(child_path)
+                and not is_ignored_extra_actual_path(child_path)
                 and not is_ignorable_missing_value(actual[key])
             ):
                 failures.append(f"{child_path} missing from expected output")
@@ -239,6 +244,16 @@ def is_ignored_missing_path(path):
     """Return True when only missing/extra comparisons should be ignored."""
 
     for ignored in IGNORED_MISSING_OUTPUT_PATHS:
+        if path == ignored or path.startswith(f"{ignored}."):
+            return True
+
+    return False
+
+
+def is_ignored_extra_actual_path(path):
+    """Return True when current MATLAB fields may be absent in old baselines."""
+
+    for ignored in IGNORED_EXTRA_ACTUAL_OUTPUT_PATHS:
         if path == ignored or path.startswith(f"{ignored}."):
             return True
 

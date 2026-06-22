@@ -146,6 +146,9 @@ Known parity notes:
   MATLAB FAST flies those cases with `AerodynamicsPkg.DragPolar`.
 - `ERJ190_FE` remains an expected end-to-end parity failure when MATLAB FAST
   itself reaches `Settings.Converged = 0`.
+- Bundled wrapper-output baselines may predate MATLAB `InitMissionHistory`
+  fields `Mission.History.SI.Aero` and `Mission.History.SI.Power.DV`; compare
+  helpers allow those fields only as extra Python output against old baselines.
 
 ## Input Contract
 
