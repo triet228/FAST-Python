@@ -186,5 +186,8 @@ saved wrapper-output replay is intentional.
 - `Example_ParametricRegional`, `LM100J_Conventional`, `LM100J_Hybrid`
 
 As MATLAB algorithms are ported, compare against wrapper outputs with
-`fast_python.compare.compare_json_value()` and keep behavior matched within the
-defined numerical tolerances.
+`fast_python.compare.compare_json_value()`. Numeric output parity uses the
+wrapper regression tolerance of `5e-5 + 1e-8 * abs(expected)` so rounded saved
+wrapper JSON does not create false gaps while meaningful drift still fails.
+The comparator also normalizes wrapper `NaN`, `Inf`, and `-Inf` string
+sentinels before comparing numeric leaves.

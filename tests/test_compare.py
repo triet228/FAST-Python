@@ -83,6 +83,32 @@ def test_compare_json_value_compares_marker_repr_with_materialized_value():
     assert failures == []
 
 
+def test_compare_json_value_accepts_wrapper_rounded_numeric_output():
+    """Check saved wrapper JSON precision does not create false parity gaps."""
+
+    failures, compared = compare_json_value(
+        40.763830590529125,
+        40.7638,
+    )
+
+    assert compared > 0
+    assert failures == []
+
+
+def test_compare_json_value_reports_values_outside_wrapper_tolerance():
+    """Check meaningful numeric drift still fails the parity comparison."""
+
+    failures, compared = compare_json_value(
+        40.7639,
+        40.7638,
+    )
+
+    assert compared > 0
+    assert failures == [
+        "Aircraft numeric mismatch: 40.7639 != 40.7638",
+    ]
+
+
 def test_compare_json_value_treats_singleton_columns_as_vectors():
     """Check MATLAB column vectors compare with Python flat vectors."""
 
@@ -113,6 +139,24 @@ def test_compare_json_value_accepts_wrapper_nan_strings():
     failures, compared = compare_json_value(
         float("nan"),
         "NaN",
+    )
+
+    assert compared > 0
+    assert failures == []
+
+
+def test_compare_json_value_accepts_wrapper_inf_strings():
+    """Check JSON Inf strings compare with Python infinite values."""
+
+    failures, compared = compare_json_value(
+        {
+            "positive": float("inf"),
+            "negative": -float("inf"),
+        },
+        {
+            "positive": "Inf",
+            "negative": "-Inf",
+        },
     )
 
     assert compared > 0

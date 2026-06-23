@@ -174,7 +174,7 @@ def compare_numbers(actual, expected, path):
 
         return [f"{path} numeric mismatch: {actual!r} != {expected!r}"], 1
 
-    tolerance = 1e-6 + 1e-8 * abs(expected)
+    tolerance = 5e-5 + 1e-8 * abs(expected)
 
     if abs(actual - expected) <= tolerance:
         return [], 1
@@ -205,6 +205,12 @@ def normalize_comparison_value(value):
 
     if value == "NaN":
         return math.nan
+
+    if value == "Inf":
+        return math.inf
+
+    if value == "-Inf":
+        return -math.inf
 
     return value
 
