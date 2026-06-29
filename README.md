@@ -100,6 +100,10 @@ $env:FAST_PYTHON_WRAPPER_PATH="C:\path\to\FAST-Python-Wrapper"
 $env:FAST_PATH="C:\path\to\FAST"
 ```
 
+The parity tests import the wrapper checkout's current `core` modules directly
+from `FAST_PYTHON_WRAPPER_PATH`; the wrapper does not need to be installed as a
+legacy `wrapper` module.
+
 Run direct MATLAB parity checks for batteries, specs, profiles, and mission
 segments:
 

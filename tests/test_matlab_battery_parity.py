@@ -2,59 +2,15 @@
 
 """Optional MATLAB parity tests for BatteryPkg helpers."""
 
-import os
-import sys
-from pathlib import Path
-
 import numpy as np
-import pytest
 
 from fast_python.battery import charging
-
-
-@pytest.fixture(scope="module")
-def matlab_wrapper():
-    """Start FAST-Python-Wrapper only when MATLAB parity is explicitly enabled."""
-
-    if os.environ.get("FAST_PYTHON_RUN_MATLAB_PARITY") != "1":
-        pytest.skip("Set FAST_PYTHON_RUN_MATLAB_PARITY=1 to run MATLAB parity tests.")
-
-    wrapper_path = Path(
-        os.environ.get(
-            "FAST_PYTHON_WRAPPER_PATH",
-            "C:/Users/homin/Projects/FAST-Python-Wrapper",
-        )
-    ).expanduser()
-    fast_path = Path(
-        os.environ.get(
-            "FAST_PATH",
-            os.environ.get("FAST_MATLAB_PATH", "C:/Users/homin/Projects/FAST"),
-        )
-    ).expanduser()
-
-    if not wrapper_path.exists():
-        pytest.skip(f"FAST-Python-Wrapper path not found: {wrapper_path}")
-
-    if not fast_path.exists():
-        pytest.skip(f"MATLAB FAST path not found: {fast_path}")
-
-    if str(wrapper_path) not in sys.path:
-        sys.path.insert(0, str(wrapper_path))
-
-    wrapper_module = pytest.importorskip("wrapper")
-    wrapper = wrapper_module.FastWrapper(fast_path)
-    wrapper.start()
-
-    try:
-        yield wrapper
-    finally:
-        wrapper.stop()
 
 
 def test_charging_mixed_power_vector_matches_matlab(matlab_wrapper):
     """Compare Charging's mixed-sign Preq branch behavior against MATLAB."""
 
-    wrapper = matlab_wrapper
+    wrapper, _ = matlab_wrapper
     aircraft = make_battery_model_aircraft()
     preq = [500, -300]
     time = [60, 120]

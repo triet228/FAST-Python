@@ -3,9 +3,6 @@
 """Optional MATLAB parity tests for every AircraftSpecsPkg aircraft preset."""
 
 import inspect
-import os
-import sys
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -29,47 +26,6 @@ AIRCRAFT_SPEC_CASES = [
     ("LM100J_Conventional", specs.lm100j_conventional),
     ("LM100J_Hybrid", specs.lm100j_hybrid),
 ]
-
-
-@pytest.fixture(scope="module")
-def matlab_wrapper():
-    """Start FAST-Python-Wrapper only when MATLAB parity is explicitly enabled."""
-
-    if os.environ.get("FAST_PYTHON_RUN_MATLAB_PARITY") != "1":
-        pytest.skip("Set FAST_PYTHON_RUN_MATLAB_PARITY=1 to run MATLAB parity tests.")
-
-    wrapper_path = Path(
-        os.environ.get(
-            "FAST_PYTHON_WRAPPER_PATH",
-            "C:/Users/homin/Projects/FAST-Python-Wrapper",
-        )
-    ).expanduser()
-    fast_path = Path(
-        os.environ.get(
-            "FAST_PATH",
-            os.environ.get("FAST_MATLAB_PATH", "C:/Users/homin/Projects/FAST"),
-        )
-    ).expanduser()
-
-    if not wrapper_path.exists():
-        pytest.skip(f"FAST-Python-Wrapper path not found: {wrapper_path}")
-
-    if not fast_path.exists():
-        pytest.skip(f"MATLAB FAST path not found: {fast_path}")
-
-    if str(wrapper_path) not in sys.path:
-        sys.path.insert(0, str(wrapper_path))
-
-    wrapper_module = pytest.importorskip("wrapper")
-    helper_module = pytest.importorskip("helper")
-    wrapper = wrapper_module.FastWrapper(fast_path)
-    wrapper.start()
-
-    try:
-        yield wrapper, helper_module.build_json_data
-    finally:
-        wrapper.stop()
-
 
 @pytest.mark.parametrize("matlab_name, python_factory", AIRCRAFT_SPEC_CASES)
 def test_aircraft_specs_pkg_matches_matlab(matlab_wrapper, matlab_name, python_factory):
