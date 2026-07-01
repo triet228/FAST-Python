@@ -34,7 +34,8 @@ optional parity suites.
 
 - Python 3.11
 - `numpy`, `scipy`, and `pytest`
-- `FAST-Python-Wrapper` plus MATLAB FAST for optional MATLAB parity tests
+- `FAST-Python-Wrapper`, MATLAB FAST, and MATLAB Engine for Python for optional
+  MATLAB parity tests
 
 Install from this repository:
 
@@ -85,8 +86,9 @@ Run the default native suite:
 python -m pytest -q
 ```
 
-MATLAB-backed parity tests are skipped unless explicitly enabled. Set these
-paths when your checkouts are outside the defaults:
+MATLAB-backed parity tests are skipped unless explicitly enabled. They also
+skip when MATLAB Engine for Python is unavailable in the active environment.
+Set these paths when your checkouts are outside the defaults:
 
 ```sh
 export FAST_PYTHON_WRAPPER_PATH="/path/to/FAST-Python-Wrapper"

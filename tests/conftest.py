@@ -36,7 +36,12 @@ def matlab_wrapper():
         pytest.skip(f"MATLAB FAST path not found: {fast_path}")
 
     wrapper = CurrentWrapperBridge(wrapper_path, fast_path)
-    wrapper.start()
+    try:
+        wrapper.start()
+    except RuntimeError as error:
+        if is_missing_matlab_engine_error(error):
+            pytest.skip(str(error))
+        raise
 
     try:
         yield wrapper, wrapper.build_json_data
@@ -105,3 +110,18 @@ class CurrentWrapperBridge:
         self._python_to_matlab = python_to_matlab
         self._resolve_fast_path = resolve_fast_path
         self._start_matlab = start_matlab
+
+
+def is_missing_matlab_engine_error(error):
+    """Return true when wrapper startup failed because MATLAB Engine is absent."""
+
+    if "MATLAB Engine for Python is not installed" in str(error):
+        return True
+
+    cause = getattr(error, "__cause__", None)
+    while cause is not None:
+        if isinstance(cause, ModuleNotFoundError) and cause.name == "matlab":
+            return True
+        cause = getattr(cause, "__cause__", None)
+
+    return False
